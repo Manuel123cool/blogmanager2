@@ -102,11 +102,11 @@ let draw = {
         let count = 0;
         data.blogEntries.forEach( elem => {
             this.drawEditArticles(elem);
-            if (!data.blogEntriesArticleHeader[count]) {
-                data.blogEntriesArticleHeader[count] = Array();
+            if (!data.headers[count]) {
+                data.headers[count] = Array();
             }
-            if (!data.blogEntriesArticles[count]) {
-                data.blogEntriesArticles[count] = Array();
+            if (!data.articles[count]) {
+                data.articles[count] = Array();
             }
             count++;
         });    
@@ -114,8 +114,8 @@ let draw = {
     drawUponIndex: function(index) {
         this.drawBackButton();
         this.drawAddArticle(); 
-        if (data.blogEntriesArticleHeader[index]) {
-            data.blogEntriesArticleHeader[index].forEach( elem => {
+        if (data.headers[index]) {
+            data.headers[index].forEach( elem => {
                 this.drawEditArticles(elem, false, null, true);
             });
         }
@@ -129,10 +129,10 @@ let draw = {
         backButton.addEventListener("click", backButtonArticleEvent); 
         
         let textArea = document.createElement("textarea");
-        if (data.blogEntriesArticles[data.currentBlogTarget]) {
+        if (data.articles[data.currentBlogTarget]) {
                 textArea.value = 
-                    data.blogEntriesArticles[data.currentBlogTarget][data.currentArticleTarget]; 
-            if (data.blogEntriesArticles[data.currentBlogTarget][data.currentArticleTarget] == 
+                    data.articles[data.currentBlogTarget][data.currentArticleTarget]; 
+            if (data.articles[data.currentBlogTarget][data.currentArticleTarget] == 
                     undefined) { 
                 textArea.value = ""; 
             }
@@ -146,8 +146,8 @@ let draw = {
 let data = {
     currentBlogTarget: -1,
     currentArticleTarget: -1,
-    blogEntriesArticleHeader: Array(),
-    blogEntriesArticles: Array(),
+    headers: Array(),
+    articles: Array(),
     blogEntries: Array(),
     resetDB: function() {
         var xmlhttp0 = new XMLHttpRequest();
@@ -171,8 +171,8 @@ let data = {
         });
         xmlhttp.open('POST', "edit.php", true);
         xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xmlhttp.send("header=" + JSON.stringify(this.blogEntriesArticleHeader) + 
-            "&article="  + JSON.stringify(this.blogEntriesArticles) + 
+        xmlhttp.send("header=" + JSON.stringify(this.headers) + 
+            "&article="  + JSON.stringify(this.articles) + 
                 "&blog_entries=" + JSON.stringify(this.blogEntries));
     },
     getBlogEntries: function() {
@@ -193,7 +193,7 @@ let data = {
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
-                this.blogEntriesArticleHeader = JSON.parse(responseText);
+                this.headers = JSON.parse(responseText);
                 console.log(responseText);
                 this.getArticle();
             }
@@ -207,7 +207,7 @@ let data = {
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
-                this.blogEntriesArticles = JSON.parse(responseText);
+                this.articles = JSON.parse(responseText);
                 console.log(responseText);
                 draw.drawAll();
             }
@@ -230,15 +230,15 @@ function drawEditArticlesEvent(e) {
     let articlesElem = document.querySelectorAll('.edit_article');
     articlesElem.forEach( (elem) => {
         if (e.target.nextSibling === elem) {
-            data.blogEntriesArticleHeader.splice(count, 0, Array());
-            data.blogEntriesArticles.splice(count, 0, Array());
+            data.headers.splice(count, 0, Array());
+            data.articles.splice(count, 0, Array());
             index = count;
         }
         ++count;
     });
 
-    data.blogEntriesArticleHeader[index] = Array();
-    data.blogEntriesArticles[index] = Array();
+    data.headers[index] = Array();
+    data.articles[index] = Array();
 }
 
 function addArticleEvent(e) {
@@ -248,8 +248,8 @@ function addArticleEvent(e) {
     let articlesElem = document.querySelectorAll('.edit_article');
     articlesElem.forEach( (elem) => {
         if (e.target.nextSibling === elem) {
-            data.blogEntriesArticleHeader[data.currentBlogTarget].splice(count, 0, Array());
-            data.blogEntriesArticles[data.currentBlogTarget].splice(count, 0, Array());
+            data.headers[data.currentBlogTarget].splice(count, 0, Array());
+            data.articles[data.currentBlogTarget].splice(count, 0, Array());
         }
         ++count;
     });
@@ -292,11 +292,11 @@ function editArticlesEvent(e) {
 }
 
 function backButtonEvent(e) {
-    data.blogEntriesArticleHeader[data.currentBlogTarget] = Array();
+    data.headers[data.currentBlogTarget] = Array();
     let count = 0;
     let articlesElem = document.querySelectorAll('.edit_article');
     articlesElem.forEach( (elem) => {
-        data.blogEntriesArticleHeader[data.currentBlogTarget][count] = elem.childNodes[1].value;
+        data.headers[data.currentBlogTarget][count] = elem.childNodes[1].value;
         ++count;
     });
     draw.wrapper.innerHTML = "";
@@ -305,14 +305,14 @@ function backButtonEvent(e) {
 
 
 function editArticleEvent(e) {
-    if (!data.blogEntriesArticleHeader[data.currentBlogTarget]) { 
-        data.blogEntriesArticleHeader[data.currentBlogTarget] = Array();
+    if (!data.headers[data.currentBlogTarget]) { 
+        data.headers[data.currentBlogTarget] = Array();
     }
     let count = 0;
     let index = 0;
     let articlesElem = document.querySelectorAll('.edit_article');
     articlesElem.forEach( (elem) => {
-        data.blogEntriesArticleHeader[data.currentBlogTarget][count] = elem.childNodes[1].value; 
+        data.headers[data.currentBlogTarget][count] = elem.childNodes[1].value; 
         if (e.target.parentNode === elem) {
             index = count;
         }
@@ -325,13 +325,13 @@ function editArticleEvent(e) {
 }
 
 function backButtonArticleEvent(e) {
-    if (!data.blogEntriesArticles[data.currentBlogTarget]) {
-        data.blogEntriesArticles[data.currentBlogTarget] = Array();
+    if (!data.articles[data.currentBlogTarget]) {
+        data.articles[data.currentBlogTarget] = Array();
     }
     let count = 0;
     let index = 0;
     let articleElem = document.getElementById("article_textarea");
-    data.blogEntriesArticles[data.currentBlogTarget][data.currentArticleTarget] = 
+    data.articles[data.currentBlogTarget][data.currentArticleTarget] = 
         articleElem.value; 
  
     draw.wrapper.innerHTML = "";
@@ -343,8 +343,8 @@ function deleteButtonArticleEvent(e) {
     let articlesElem = document.querySelectorAll('.edit_article');
     articlesElem.forEach( (elem) => {
         if (e.target.parentNode === elem) {
-            data.blogEntriesArticleHeader[data.currentBlogTarget].splice(count, 1);
-            data.blogEntriesArticles[data.currentBlogTarget].splice(count, 1);
+            data.headers[data.currentBlogTarget].splice(count, 1);
+            data.articles[data.currentBlogTarget].splice(count, 1);
         }
         ++count;
     });
@@ -357,8 +357,8 @@ function deleteButtonArticlesEvent(e) {
     let articlesElem = document.querySelectorAll('.edit_article');
     articlesElem.forEach( (elem) => {
         if (e.target.parentNode === elem) {
-            data.blogEntriesArticleHeader.splice(count, 1);
-            data.blogEntriesArticles.splice(count, 1);
+            data.headers.splice(count, 1);
+            data.articles.splice(count, 1);
         }
         ++count;
     });
