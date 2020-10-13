@@ -203,6 +203,15 @@ function getOneArticle($whichBlogEntrie, $index) {
     $text = $result->fetch_assoc();
     echo json_encode($text["text"]);
 }
+
+function createFile($fileName, $fileContent) {
+    echo "Hallo";
+    $fileName = "page/" . $fileName;
+    $myfile = fopen($fileName, "w") or die("Unable to open file!");
+    fwrite($myfile, $fileContent);
+    fclose($myfile);
+}
+
 if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
     if ($_COOKIE["myname"] == "Manuel" && 
             password_verify("Password", $_COOKIE["mypassword"])) {
@@ -239,8 +248,10 @@ if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
     }
 
     if (isset($_POST["article"])) {
+        system("sudo rm page/*");
         $articles = json_decode($_POST["article"]);
         $count = 0;
+        $count2 = 0;
         foreach ($articles as $article) {
             createTableArticle($count); 
             $conn = conn();
@@ -248,8 +259,12 @@ if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
             $stmt->bind_param("s", $text);
             foreach ($article as $articleTxt) {
                 if (is_string($articleTxt)) {
-                $text = $articleTxt;    
-                $stmt->execute();
+                    if (!empty($articleTxt)) {
+                        createFile($count2 . ".html", $articleTxt);
+                    }
+                    $count2++; 
+                    $text = $articleTxt;    
+                    $stmt->execute();
                 }
             } 
             unset($articleTxt);
