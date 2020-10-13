@@ -58,6 +58,7 @@ function createTableHeader($index) {
 
 function createTableArticle($index) {
     $sql = "CREATE TABLE IF NOT EXISTS article$index (
+        id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
         text VARCHAR(1000)
     )";
 
@@ -192,6 +193,16 @@ function getHeader() {
     conn()->close();
 }
 
+function getOneArticle($whichBlogEntrie, $index) {
+    $conn = conn();
+    $sql = "SELECT text FROM article$whichBlogEntrie WHERE id=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $index);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $text = $result->fetch_assoc();
+    echo json_encode($text["text"]);
+}
 if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
     if ($_COOKIE["myname"] == "Manuel" && 
             password_verify("Password", $_COOKIE["mypassword"])) {
@@ -265,4 +276,13 @@ if (isset($_GET["get_header"])) {
 
 if (isset($_GET["get_article"])) {
     getArticle(); 
+}
+
+if (isset($_GET["one_article"], $_GET["which_blog_entrie"], $_GET["index"])) {
+    $which_blog_entrie = json_decode($_GET["which_blog_entrie"]);
+    if (!is_numeric($which_blog_entrie)) {
+        exit("Error: Which_blog_entrie is not a numeric"); 
+    }
+    $index = json_decode($_GET["index"]);
+    getOneArticle($which_blog_entrie, $index); 
 }

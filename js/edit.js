@@ -144,10 +144,7 @@ let draw = {
 }
 
 let data = {
-    currentBlogTarget: -1,
-    currentArticleTarget: -1,
-    headers: Array(),
-    articles: Array(),
+    currentBlogTarget: -1, currentArticleTarget: -1, headers: Array(), articles: Array(),
     blogEntries: Array(),
     resetDB: function() {
         var xmlhttp0 = new XMLHttpRequest();
