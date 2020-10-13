@@ -1,8 +1,84 @@
 "use strict";
+let urlPar = {
+    checkPar: function () {
+        let url = window.location.href;
+        let indexPage = url.search("page=");
+        let index1Index = url.search("index1=");
+        let index2Index = url.search("index2=");
+        let firstPageChar = 'h';
+        
+        if (indexPage != -1) {
+            firstPageChar = url.charAt(indexPage + 5); 
+        } 
+
+        let index1 = 0;
+        if (index1Index != -1) {
+            let counter = index1Index ;
+            let isNumber = true;
+            while (isNumber) {
+                if (url.charAt(counter + 7) != '&' && url.charAt(counter + 7)) {
+                    isNumber = true; 
+                    index1 += url.charAt(counter + 7);
+                } else {
+                    isNumber = false;
+                }
+                counter++;
+            }
+        }
+
+        let index2 = 0;
+        if (index2Index != -1) {
+            let counter = index2Index ;
+            let isNumber = true;
+            while (isNumber) {
+                if (url.charAt(counter + 7) && url.charAt(counter + 7) != '&') {
+                    isNumber = true; 
+                    index2 += url.charAt(counter + 7);
+                } else {
+                    isNumber = false;
+                }
+                counter++;
+            }
+        }
+ 
+        switch (firstPageChar) {
+            case 'h':
+                data.drawHeaderPage();
+                return true;
+            case 'a':
+                data.drawArticle(Number(index1), Number(index2));
+                return true;
+            default:
+                data.drawHeaderPage();
+                return true;
+        }
+    },
+    insertParam: function(value, index2, siteIndex = false)
+    {
+        value = encodeURIComponent(value);
+        let key = 'page';
+        let key2 = '';
+        let oldPar = '';
+        if (siteIndex) {
+            oldPar = 'page=article&';
+            key = 'index1';
+    
+            key2 = '&index2=' + index2;
+        }
+        let url = 'index.html?' + oldPar + key + '=' + value + key2;
+        window.history.pushState(null, null, url);
+        this.checkPar();
+    }
+}
+
+window.onpopstate = function(event) {
+    urlPar.checkPar();
+}
 
 let draw = {
     wrapper: document.getElementById("site_wrapper"),
     drawIndexPage: function() {
+        this.wrapper.innerHTML = "";
         for (let i = 0; i < data.blogEntries.length; ++i) {
             let headerElem = document.createElement("h3");
             headerElem.innerHTML = data.blogEntries[i];
@@ -27,13 +103,33 @@ let data = {
     headers: Array(),
     articles: Array(),
     blogEntries: Array(),
+    headersSet: false,
+    drawHeaderPage: function() {
+        if (this.headersSet) {
+            draw.drawIndexPage();
+        } else {
+            this.getBlogEntries();
+        }
+    },
+    drawArticle: function(index1, index2) {
+        draw.wrapper.textContent = "";
+        try {
+            if(this.articles[index1][index2] != undefined) {
+                draw.wrapper.insertAdjacentHTML("beforeend", this.articles[index1][index2]);
+            } else {
+                this.getArticle(index1, index2);
+            } 
+        } catch {
+            this.getArticle(index1, index2);
+        } 
+    },
     getBlogEntries: function() {
         let xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
                 console.log(responseText);
-                this.blogEntries = JSON.parse(responseText);
+                this.blogEntries = JSON.parse(responseText); 
                 this.getHeader(); 
             }
         });
@@ -47,6 +143,7 @@ let data = {
                 let responseText = xmlhttp0.responseText;
                 this.headers = JSON.parse(responseText);
                 console.log(responseText);
+                this.headersSet = true;
                 draw.drawIndexPage();
             }
         });
@@ -60,9 +157,18 @@ let data = {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
                 console.log(responseText);
-                this.headers = JSON.parse(responseText);
-                draw.wrapper.textContent = "";
-                draw.wrapper.insertAdjacentHTML("beforeend", JSON.parse(responseText));
+                try {
+                    if(this.articles[index1] != undefined) {
+                        this.articles[index1][index2] = JSON.parse(responseText);
+                    } else {
+                        this.articles[index1] = Array();
+                        this.articles[index1][index2] = JSON.parse(responseText);
+                    } 
+                } catch {
+                    this.articles[index1] = Array();
+                    this.articles[index1][index2] = JSON.parse(responseText);
+                } 
+                draw.wrapper.insertAdjacentHTML("beforeend", JSON.parse(responseText)); 
             }
         });
         xmlhttp0.open('GET', "edit.php?one_article=true&" + 
@@ -73,7 +179,7 @@ let data = {
 }
 
 function init(e) {
-    data.getBlogEntries();
+    urlPar.checkPar();
 }
 
 function getTextEvent(e) {
@@ -96,9 +202,7 @@ function getTextEvent(e) {
         }
         count++;
     } 
-    console.log(index1);
-    console.log(index2);
-    data.getArticle(index1 - 1, index2); 
+    urlPar.insertParam(index1 - 1, index2, true); 
 }
 
 function preventDefault(e) {
