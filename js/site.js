@@ -208,4 +208,16 @@ function getTextEvent(e) {
 function preventDefault(e) {
     e.preventDefault();
 }
+
+function scrollEvent(e) { 
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const scrolled = window.scrollYOffset;
+    const blalba = drawCom.wrapper.getBoundingClientRect();
+    console.log(blalba);
+    if (Math.ceil(scrolled) == Math.ceil(scrollable)) {
+        drawCom.draw();
+    }
+}
+
+window.addEventListener("scroll", scrollEvent);
 document.addEventListener("DOMContentLoaded", init);

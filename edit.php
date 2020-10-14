@@ -59,7 +59,7 @@ function createTableHeader($index) {
 function createTableArticle($index) {
     $sql = "CREATE TABLE IF NOT EXISTS article$index (
         id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
-        text VARCHAR(1000)
+        text VARCHAR(10000)
     )";
 
     if (conn()->query($sql) === TRUE) {
