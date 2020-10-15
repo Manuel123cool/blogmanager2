@@ -108,6 +108,7 @@ let data = {
     articles: Array(),
     blogEntries: Array(),
     headersSet: false,
+    articlesSet: false,
     drawHeaderPage: function() {
         document.getElementById("from_wrapper").setAttribute("style", "display: none;");
         drawCom.wrapper.textContent = "";
@@ -121,16 +122,12 @@ let data = {
     drawArticle: function(index1, index2) {
         draw.wrapper.textContent = "";
         document.getElementById("from_wrapper").setAttribute("style", "display: block;");
-        try {
-            if(this.articles[index1][index2] != undefined) {
-                draw.wrapper.insertAdjacentHTML("beforeend", this.articles[index1][index2]);
-                intersectionObserver(index1, index2);
-            } else {
-                this.getArticle(index1, index2);
-            } 
-        } catch {
-            this.getArticle(index1, index2);
-        } 
+        if (this.articlesSet) { 
+            draw.wrapper.insertAdjacentHTML("beforeend", this.articles[index1][index2]);
+            drawCom.draw(index1, index2);
+        } else {
+            this.getArticles(index1, index2);
+        }
     },
     getBlogEntries: function() {
         let xmlhttp0 = new XMLHttpRequest();
@@ -160,29 +157,19 @@ let data = {
         xmlhttp0.send();  
 
     },
-    getArticle: function(index1, index2) {
+    getArticles: function(index1, index2) {
         var xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
                 //console.log(responseText);
-                try {
-                    if(this.articles[index1] != undefined) {
-                        this.articles[index1][index2] = JSON.parse(responseText);
-                    } else {
-                        this.articles[index1] = Array();
-                        this.articles[index1][index2] = JSON.parse(responseText);
-                    } 
-                } catch {
-                    this.articles[index1] = Array();
-                    this.articles[index1][index2] = JSON.parse(responseText);
-                } 
-                draw.wrapper.insertAdjacentHTML("beforeend", JSON.parse(responseText)); 
-                intersectionObserver(index1, index2);
+                this.articles = JSON.parse(responseText);
+                draw.wrapper.insertAdjacentHTML("beforeend", JSON.parse(responseText)[index1][index2]); 
+                this.articlesSet = true;
+                drawCom.draw(index1, index2);
             }
         });
-        xmlhttp0.open('GET', "edit.php?one_article=true&" + 
-            "which_blog_entrie=" + index1 + "&index=" + index2, true);
+        xmlhttp0.open('GET', "edit.php?get_article=true&", true);
         xmlhttp0.send();  
 
     }
@@ -217,17 +204,6 @@ function getTextEvent(e) {
 
 function preventDefault(e) {
     e.preventDefault();
-}
-
-function intersectionObserver(index1, index2) {
-    const callBackFunction = function(entries) {
-        if (entries[0].isIntersecting && urlPar.currentPageChar == 'a') {
-            drawCom.draw(index1, index2);
-        }
-    };
-
-    const observer = new IntersectionObserver(callBackFunction);
-    observer.observe(drawCom.wrapper);
 }
 
 document.addEventListener("DOMContentLoaded", init);
