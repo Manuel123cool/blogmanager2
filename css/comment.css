@@ -1,0 +1,31 @@
+#comment_wrapper article {
+    padding-left: 10px;
+    border-left-style: solid;
+    border-color: grey;
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#comment_wrapper span {
+    overflow-wrap: break-word;
+}
+
+#comment_data {
+    font-size: 15px;
+    border-bottom-style: dotted;
+    border-width: 2px;
+}
+
+#comment_wrapper #name_span {
+    margin-right: 5px;
+    display: inline;
+}
+
+#comment_wrapper #text_span {
+    font-size: 13px;
+}
+
+#comment_wrapper #date_span {
+    margin-right: 5px;
+}

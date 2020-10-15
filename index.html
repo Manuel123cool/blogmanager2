@@ -2,11 +2,34 @@
 <html>
 <head>
     <title>Main Site</title>
+    <link rel="stylesheet" type="text/css" href="css/comment.css">
+    <link rel="stylesheet" type="text/css" href="css/site.css">
     <meta charset="UTF-8">
 </head>
 <body>
     <div id="site_wrapper"></div>
     <div id="comment_wrapper"></div>
+    <div id="from_wrapper" style="display: none;">
+        <p>Leave a comment: </p>
+        <a id="reply_cancel" href=""></a> 
+	<form id="form"> 
+	<textarea name="comment" id="comment" rows="10" cols="50"></textarea>
+	<br>
+	<label for="name">Name:</label>
+	<input type="text" id="name" name="name">
+	<br>
+	<label for="E-Mail">E-Mail:</label>
+	<input type="text" id="E-Mail" name="E-Mail">
+	<br>
+	<label for="website">Website:</label>
+	<input type="text" id="website" name="website">
+    <br>
+	<input type="checkbox" id="save_input" name="save_input">
+	<label for="save_input">Save my name, email, 
+        and website in this browser for the next time I comment.</label>
+    <br>
+	<input id="submit" type="submit" value="Submit"></form>
+    </div>
     <script src="js/comment.js" type"text/javscript"></script> 
     <script src="js/site.js" type"text/javscript"></script> 
 </body>

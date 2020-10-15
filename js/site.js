@@ -1,5 +1,6 @@
 "use strict";
 let urlPar = {
+    currentPageChar: "h",
     checkPar: function () {
         let url = window.location.href;
         let indexPage = url.search("page=");
@@ -44,12 +45,15 @@ let urlPar = {
         switch (firstPageChar) {
             case 'h':
                 data.drawHeaderPage();
+                this.currentPageChar = 'h';
                 return true;
             case 'a':
                 data.drawArticle(Number(index1), Number(index2));
+                this.currentPageChar = 'a';
                 return true;
             default:
                 data.drawHeaderPage();
+                this.currentPageChar = 'h';
                 return true;
         }
     },
@@ -105,6 +109,9 @@ let data = {
     blogEntries: Array(),
     headersSet: false,
     drawHeaderPage: function() {
+        document.getElementById("from_wrapper").setAttribute("style", "display: none;");
+        drawCom.wrapper.textContent = "";
+        drawCom.drawn = false;
         if (this.headersSet) {
             draw.drawIndexPage();
         } else {
@@ -113,9 +120,11 @@ let data = {
     },
     drawArticle: function(index1, index2) {
         draw.wrapper.textContent = "";
+        document.getElementById("from_wrapper").setAttribute("style", "display: block;");
         try {
             if(this.articles[index1][index2] != undefined) {
                 draw.wrapper.insertAdjacentHTML("beforeend", this.articles[index1][index2]);
+                intersectionObserver(index1, index2);
             } else {
                 this.getArticle(index1, index2);
             } 
@@ -128,7 +137,7 @@ let data = {
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
-                console.log(responseText);
+                //console.log(responseText);
                 this.blogEntries = JSON.parse(responseText); 
                 this.getHeader(); 
             }
@@ -142,7 +151,7 @@ let data = {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
                 this.headers = JSON.parse(responseText);
-                console.log(responseText);
+                //console.log(responseText);
                 this.headersSet = true;
                 draw.drawIndexPage();
             }
@@ -156,7 +165,7 @@ let data = {
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
-                console.log(responseText);
+                //console.log(responseText);
                 try {
                     if(this.articles[index1] != undefined) {
                         this.articles[index1][index2] = JSON.parse(responseText);
@@ -169,6 +178,7 @@ let data = {
                     this.articles[index1][index2] = JSON.parse(responseText);
                 } 
                 draw.wrapper.insertAdjacentHTML("beforeend", JSON.parse(responseText)); 
+                intersectionObserver(index1, index2);
             }
         });
         xmlhttp0.open('GET', "edit.php?one_article=true&" + 
@@ -209,15 +219,15 @@ function preventDefault(e) {
     e.preventDefault();
 }
 
-function scrollEvent(e) { 
-    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-    const scrolled = window.scrollYOffset;
-    const blalba = drawCom.wrapper.getBoundingClientRect();
-    console.log(blalba);
-    if (Math.ceil(scrolled) == Math.ceil(scrollable)) {
-        drawCom.draw();
-    }
+function intersectionObserver(index1, index2) {
+    const callBackFunction = function(entries) {
+        if (entries[0].isIntersecting && urlPar.currentPageChar == 'a') {
+            drawCom.draw(index1, index2);
+        }
+    };
+
+    const observer = new IntersectionObserver(callBackFunction);
+    observer.observe(drawCom.wrapper);
 }
 
-window.addEventListener("scroll", scrollEvent);
 document.addEventListener("DOMContentLoaded", init);
