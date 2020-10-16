@@ -64,6 +64,13 @@ let drawCom = {
             reply.setAttribute("id", "reply_button");
             reply.innerHTML = "reply";
             comment_data.appendChild(reply);
+
+            if (elem[3] > 0) { 
+                let showReply = document.createElement("button");
+                showReply.setAttribute("id", "show_reply");
+                showReply.innerHTML = "show reply";
+                comment_data.appendChild(showReply);
+            }
            
             reply.addEventListener("click", replyEvent);
             article.appendChild(comment_data);
@@ -88,8 +95,7 @@ let drawCom = {
 
 let dataCom = {
     replyOn: false,
-    replyIndex1: 0,
-    replyIndex2: 0, 
+    replyIndex: 0,
     siteIndex1: -1,
     siteIndex2: -1,
     sendData: function(name, date, text, replyIndex) {
@@ -125,7 +131,17 @@ let dataCom = {
 
 function drawCommentEvent(e) {
     e.preventDefault();
-    drawCom.drawComment(); 
+    if (!dataCom.replyOn) {
+        drawCom.drawComment(); 
+    } else {
+        let comment = document.getElementById("comment").value;
+        let name = document.getElementById("name").value;
+    
+        let dateObj = new Date();
+        let dateString = dateObj.toDateString(); 
+
+        dataCom.sendData(name, dateString, comment, 1);
+    }
 }
     
 function replyEvent(e) {
