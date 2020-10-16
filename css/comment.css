@@ -17,15 +17,19 @@
     border-width: 2px;
 }
 
-#comment_wrapper #name_span {
+#comment_wrapper .name_span {
     margin-right: 5px;
     display: inline;
 }
 
-#comment_wrapper #text_span {
+#comment_wrapper .text_span {
     font-size: 13px;
 }
 
-#comment_wrapper #date_span {
+#comment_wrapper .date_span {
     margin-right: 5px;
+}
+
+#comment_wrapper .deph1 {
+    margin-left: 20px;
 }
