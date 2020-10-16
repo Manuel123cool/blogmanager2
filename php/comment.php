@@ -33,7 +33,8 @@ function createTable($index1, $index2) {
         name VARCHAR(30),
         comment VARCHAR(1000),
         date VARCHAR(30),
-        replyIndex INT(30)
+        replyIndex1 INT(30),
+        replyIndex2 INT(30)
     )";
 
     if (conn()->query($sql) === TRUE) {
@@ -45,21 +46,22 @@ function createTable($index1, $index2) {
     conn()->close();
 }
 
-function insertData($name, $comment, $date, $replyIndex, $siteIndex1, $siteIndex2) {
+function insertData($name, $comment, $date, $replyIndex1, $replyIndex2, $siteIndex1, $siteIndex2) {
     createTable($siteIndex1, $siteIndex2);
     $sql = "INSERT INTO ${siteIndex1}comment$siteIndex2
-         (comment, name, date, replyIndex)
-                 VALUES (?, ?, ?, ?)";
+         (comment, name, date, replyIndex1, replyIndex2)
+                 VALUES (?, ?, ?, ?, ?)";
     $conn = conn();
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssi", $comment, $name, $date, $replyIndex);
+    $stmt->bind_param("sssii", $comment, $name, $date, $replyIndex1, $replyIndex2);
     $stmt->execute();
 }
 
 function getData($siteIndex1, $siteIndex2) {
     createTable($siteIndex1, $siteIndex2);
     $array = Array();
-    $sql = "SELECT comment, name, date, replyIndex FROM ${siteIndex1}comment$siteIndex2";
+    $sql = "SELECT comment, name, date, replyIndex1, 
+                replyIndex2 FROM ${siteIndex1}comment$siteIndex2";
     $result = conn()->query($sql);
 
     $returnEmpty = false;
@@ -70,7 +72,8 @@ function getData($siteIndex1, $siteIndex2) {
             $array[$count][0] = $row["comment"]; 
             $array[$count][1] = $row["name"]; 
             $array[$count][2] = $row["date"]; 
-            $array[$count][3] = $row["replyIndex"]; 
+            $array[$count][3] = $row["replyIndex1"]; 
+            $array[$count][4] = $row["replyIndex2"]; 
             $count++;
         }
     } else {
@@ -85,10 +88,10 @@ function getData($siteIndex1, $siteIndex2) {
 
 if (isset($_POST['name'], $_POST['comment'], $_POST['date'], 
             $_POST['siteIndex1'], $_POST['siteIndex2'],
-                $_POST["replyIndex"])) {
+                $_POST["replyIndex1"], $_POST["replyIndex2"])) {
 
     insertdata($_POST['name'], $_POST['comment'], $_POST['date'], 
-            $_POST['replyIndex'], $_POST["siteIndex1"],
+            $_POST['replyIndex1'], $_POST["replyIndex2"], $_POST["siteIndex1"],
                 $_POST["siteIndex2"]);    
     echo "data arrived";
 }

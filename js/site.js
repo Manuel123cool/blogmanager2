@@ -107,27 +107,16 @@ let data = {
     headers: Array(),
     articles: Array(),
     blogEntries: Array(),
-    headersSet: false,
-    articlesSet: false,
     drawHeaderPage: function() {
         document.getElementById("from_wrapper").setAttribute("style", "display: none;");
         drawCom.wrapper.textContent = "";
-        drawCom.drawn = false;
-        if (this.headersSet) {
-            draw.drawIndexPage();
-        } else {
-            this.getBlogEntries();
-        }
+        draw.drawIndexPage();
     },
     drawArticle: function(index1, index2) {
         draw.wrapper.textContent = "";
         document.getElementById("from_wrapper").setAttribute("style", "display: block;");
-        if (this.articlesSet) { 
-            draw.wrapper.insertAdjacentHTML("beforeend", this.articles[index1][index2]);
-            drawCom.draw(index1, index2);
-        } else {
-            this.getArticles(index1, index2);
-        }
+        draw.wrapper.insertAdjacentHTML("beforeend", this.articles[index1][index2]);
+        drawCom.draw(index1, index2);
     },
     getBlogEntries: function() {
         let xmlhttp0 = new XMLHttpRequest();
@@ -149,24 +138,21 @@ let data = {
                 let responseText = xmlhttp0.responseText;
                 this.headers = JSON.parse(responseText);
                 //console.log(responseText);
-                this.headersSet = true;
-                draw.drawIndexPage();
+                this.getArticles();
             }
         });
         xmlhttp0.open('GET', "edit.php?get_header=true", true);
         xmlhttp0.send();  
 
     },
-    getArticles: function(index1, index2) {
+    getArticles: function() {
         var xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
                 //console.log(responseText);
                 this.articles = JSON.parse(responseText);
-                draw.wrapper.insertAdjacentHTML("beforeend", JSON.parse(responseText)[index1][index2]); 
-                this.articlesSet = true;
-                drawCom.draw(index1, index2);
+                urlPar.checkPar();
             }
         });
         xmlhttp0.open('GET', "edit.php?get_article=true&", true);
@@ -176,7 +162,7 @@ let data = {
 }
 
 function init(e) {
-    urlPar.checkPar();
+    data.getBlogEntries();
 }
 
 function getTextEvent(e) {
@@ -199,7 +185,7 @@ function getTextEvent(e) {
         }
         count++;
     } 
-    urlPar.insertParam(index1 - 1, index2, true); 
+    urlPar.insertParam(index1 - 1, index2 - 1, true); 
 }
 
 function preventDefault(e) {
