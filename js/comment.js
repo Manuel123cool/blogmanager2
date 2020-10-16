@@ -4,7 +4,6 @@ let drawCom = {
     wrapper: document.getElementById("comment_wrapper"),
     drawComment: function() {
         let article = document.createElement('article');        
-
         let comment_data = document.createElement("div");
         comment_data.setAttribute("class", "comment_data");
         article.appendChild(comment_data);
@@ -36,13 +35,12 @@ let drawCom = {
 
         drawCom.wrapper.appendChild(article);
         
-        if (!dataCom.replyOn) {
-            dataCom.sendData(name.innerHTML, date.innerHTML, p.innerHTML, -1, -1); 
-        }
+        dataCom.sendData(name.innerHTML, date.innerHTML, p.innerHTML); 
     },
     drawReply: function(referenceNode, name, comment, date) {
         let article = document.createElement('article');        
-        article.setAttribute("class", "deph1");
+        
+        article.setAttribute("style", "margin-left: 20px;");
 
         let comment_data = document.createElement("div");
         comment_data.setAttribute("class", "comment_data");
@@ -81,9 +79,10 @@ let drawCom = {
     },
     drawComments: function(array) {
         //console.log(array);
+        
         let count = 0;
         array.forEach( (elem) => {
-            if (elem[3] != -1) {
+            if (elem[3][0] != "noReplyIndex") {
                 return;
             }
             let article = document.createElement('article');        
@@ -148,15 +147,15 @@ class ReplyIsOn {
         this.index = index;
     }
 }
+
 let dataCom = {
     array: Array(),
     showReplyIsOn: Array(),
     replyOn: false,
-    replyIndex1: -1,
-    replyIndex2: -1,
+    replyIndex: Array(), 
     siteIndex1: -1,
     siteIndex2: -1,
-    sendData: function(name, date, text, replyIndex1, replyIndex2) {
+    sendData: function(name, date, text) {
         var xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
@@ -166,8 +165,12 @@ let dataCom = {
         });
         xmlhttp0.open('POST', "php/comment.php", true);
         xmlhttp0.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        let replyIndex = ['noReplyIndex'];
+        if (this.replyIndex.length > 0) {
+            replyIndex = this.replyIndex;
+        }
         xmlhttp0.send("name=" + name + "&date=" + date + "&comment=" + text + 
-            "&replyIndex1=" + replyIndex1 + "&replyIndex2=" + replyIndex2 +
+            "&replyIndex=" + JSON.stringify(replyIndex) +
                 "&siteIndex1=" + this.siteIndex1 + "&siteIndex2=" + this.siteIndex2);
     },
     getData: function() {
@@ -201,7 +204,7 @@ function drawCommentEvent(e) {
             
         let myDraw = true;
         dataCom.array.forEach( elem => {
-            if (elem[3] == dataCom.replyIndex1) {
+            if (dataCom.replyIndex[0] == elem[3][0]) {
                 myDraw = false;
             }
         }); 
@@ -209,7 +212,7 @@ function drawCommentEvent(e) {
             let showReply = document.createElement("button");
             showReply.setAttribute("class", "show_reply");
             showReply.innerHTML = "show reply";
-            drawCom.wrapper.childNodes[dataCom.replyIndex1].
+            drawCom.wrapper.childNodes[dataCom.replyIndex[0]].
                 childNodes[0].appendChild(showReply);
             showReply.addEventListener("click", showReplyEvent);
         }
@@ -218,11 +221,10 @@ function drawCommentEvent(e) {
         array[0] = comment;
         array[1] = name;
         array[2] = dateString;
-        array[3] = dataCom.replyIndex1;
-        array[4] = -1;
+        array[3] = dataCom.replyIndex;
         dataCom.array.push(array);
 
-        dataCom.sendData(name, dateString, comment, dataCom.replyIndex1, -1);
+        dataCom.sendData(name, dateString, comment);
     }
 } 
 
@@ -233,32 +235,56 @@ function replyEvent(e) {
     replyCancel.innerHTML = "cancel reply";        
     replyCancel.addEventListener("click", cancelReplyEvent);
     
-    let childNodes = drawCom.wrapper.childNodes;
-    let count = 0;
-    childNodes.forEach( (elem) => {
-        if (elem == e.currentTarget.parentNode.parentNode) {
-            dataCom.replyIndex1 = count;
+    dataCom.replyIndex = Array();
+    let elemNot0px = true;
+    let count1 = 0;
+    let nextNode = e.currentTarget.parentNode.parentNode;
+    let marginChanged = false;
+    let previousMargin = nextNode.style.marginLeft;
+    while (elemNot0px) {
+        previousMargin = nextNode.style.marginLeft;
+        if (nextNode.style.marginLeft == "") {
+            let count = 0;
+            drawCom.wrapper.childNodes.forEach( elem => {
+                if (elem == nextNode) {
+                    dataCom.replyIndex.push(count);
+                    elemNot0px = false;
+                }
+                count++;
+            }); 
+        } 
+        if (!elemNot0px) {
+            break;
         }
-        count++;
-    });
+        nextNode = nextNode.previousSibling;
+        if (nextNode.style.marginLeft != previousMargin) {
+            dataCom.replyIndex.push(count1);
+            count1 = 0;
+        }
+       
+        count1++;
+    }
+    dataCom.replyIndex.reverse();
+    console.log(dataCom.replyIndex);
     dataCom.replyOn = true;
 }
-
-function cancelReplyEvent(e) {
+function cancelReplyEvent(e) { 
     e.preventDefault();
 
     let replyCancel = document.getElementById("reply_cancel");
     replyCancel.innerHTML = "";        
 
     dataCom.replyOn = false;
+    dataCom.replyIndex[0] = "noReplyIndex";
 }
 
 function showReplyEvent(e) {
-    let childNodes = drawCom.wrapper.childNodes;
-    let count = 0;
+    let count = 0;isOn: false
     let count2 = 0;
     let index = 0;
     let indexForChecking = 0;
+
+    let childNodes = drawCom.wrapper.childNodes;
     childNodes.forEach( (elem) => {
         if (elem == e.currentTarget.parentNode.parentNode) {
             index = count; 
@@ -292,7 +318,7 @@ function showReplyEvent(e) {
     let firstReply = true;
     let count1 = 0;
     dataCom.array.forEach( (elem) => {
-        if (elem[3] == indexForChecking) {
+        if (elem[3][0] == indexForChecking) {
             if (deleteReply) {
                 drawCom.deleteReply(childNodes[index]); 
             } else {

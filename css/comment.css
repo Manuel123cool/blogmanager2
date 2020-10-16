@@ -11,7 +11,7 @@
     overflow-wrap: break-word;
 }
 
-#comment_data {
+.comment_data {
     font-size: 15px;
     border-bottom-style: dotted;
     border-width: 2px;
@@ -30,6 +30,3 @@
     margin-right: 5px;
 }
 
-#comment_wrapper .deph1 {
-    margin-left: 20px;
-}
