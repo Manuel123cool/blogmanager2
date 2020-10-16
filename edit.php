@@ -114,7 +114,7 @@ function getBlogEntries() {
         //echo "0 results";
     }
     conn()->close();
-    echo json_encode($array);
+    return $array;
 }
 
 function getArticle() {
@@ -151,7 +151,7 @@ function getArticle() {
             //echo "0 results";
         }
     }
-    echo json_encode($array);
+    return $array;
     conn()->close();
 }
 
@@ -189,7 +189,7 @@ function getHeader() {
             //echo "0 results";
         }
     }
-    echo json_encode($array);
+    return $array;
     conn()->close();
 }
 
@@ -269,16 +269,14 @@ if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
     }
     }
 }
-if (isset($_GET["get_blog_entries"])) {
+
+if (isset($_GET["getData"])) {
     createTableBlogEntries();
-    getBlogEntries();
-}
-
-if (isset($_GET["get_header"])) {
-    getHeader(); 
-}
-
-if (isset($_GET["get_article"])) {
-    getArticle(); 
+    $array = [
+        "blogEntries" => getBlogEntries(),
+        "headers" => getHeader(),
+        "articles" => getArticle()
+    ];
+    echo json_encode($array);
 }
 

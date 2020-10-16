@@ -118,51 +118,25 @@ let data = {
         draw.wrapper.insertAdjacentHTML("beforeend", this.articles[index1][index2]);
         drawCom.draw(index1, index2);
     },
-    getBlogEntries: function() {
+    getData: function() {
         let xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
                 //console.log(responseText);
-                this.blogEntries = JSON.parse(responseText); 
-                this.getHeader(); 
-            }
-        });
-        xmlhttp0.open('GET', "edit.php?get_blog_entries=true", true);
-        xmlhttp0.send();  
-    },
-    getHeader: function() {
-        var xmlhttp0 = new XMLHttpRequest();
-        xmlhttp0.addEventListener('readystatechange', (e) => {
-            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
-                let responseText = xmlhttp0.responseText;
-                this.headers = JSON.parse(responseText);
-                //console.log(responseText);
-                this.getArticles();
-            }
-        });
-        xmlhttp0.open('GET', "edit.php?get_header=true", true);
-        xmlhttp0.send();  
-
-    },
-    getArticles: function() {
-        var xmlhttp0 = new XMLHttpRequest();
-        xmlhttp0.addEventListener('readystatechange', (e) => {
-            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
-                let responseText = xmlhttp0.responseText;
-                //console.log(responseText);
-                this.articles = JSON.parse(responseText);
+                this.blogEntries = JSON.parse(responseText).blogEntries; 
+                this.headers = JSON.parse(responseText).headers; 
+                this.articles = JSON.parse(responseText).articles; 
                 urlPar.checkPar();
             }
         });
-        xmlhttp0.open('GET', "edit.php?get_article=true&", true);
+        xmlhttp0.open('GET', "edit.php?getData=true", true);
         xmlhttp0.send();  
-
     }
 }
 
 function init(e) {
-    data.getBlogEntries();
+    data.getData();
 }
 
 function getTextEvent(e) {
