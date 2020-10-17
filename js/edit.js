@@ -144,7 +144,10 @@ let draw = {
 }
 
 let data = {
-    currentBlogTarget: -1, currentArticleTarget: -1, headers: Array(), articles: Array(),
+    currentBlogTarget: -1, 
+    currentArticleTarget: -1, 
+    headers: Array(), 
+    articles: Array(),
     blogEntries: Array(),
     resetDB: function() {
         var xmlhttp0 = new XMLHttpRequest();
@@ -172,51 +175,25 @@ let data = {
             "&article="  + JSON.stringify(this.articles) + 
                 "&blog_entries=" + JSON.stringify(this.blogEntries));
     },
-    getBlogEntries: function() {
-        var xmlhttp0 = new XMLHttpRequest();
+    getData: function() {
+        let xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
-                console.log(responseText);
-                this.blogEntries = JSON.parse(responseText);
-                this.getHeader();
-            }
-        });
-        xmlhttp0.open('GET', "edit.php?get_blog_entries=true", true);
-        xmlhttp0.send();  
-    },
-    getHeader: function() {
-        var xmlhttp0 = new XMLHttpRequest();
-        xmlhttp0.addEventListener('readystatechange', (e) => {
-            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
-                let responseText = xmlhttp0.responseText;
-                this.headers = JSON.parse(responseText);
-                console.log(responseText);
-                this.getArticle();
-            }
-        });
-        xmlhttp0.open('GET', "edit.php?get_header=true", true);
-        xmlhttp0.send();  
-
-    },
-    getArticle: function() {
-        var xmlhttp0 = new XMLHttpRequest();
-        xmlhttp0.addEventListener('readystatechange', (e) => {
-            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
-                let responseText = xmlhttp0.responseText;
-                this.articles = JSON.parse(responseText);
-                console.log(responseText);
+                //console.log(responseText);
+                this.blogEntries = JSON.parse(responseText).blogEntries; 
+                this.headers = JSON.parse(responseText).headers; 
+                this.articles = JSON.parse(responseText).articles; 
                 draw.drawAll();
             }
         });
-        xmlhttp0.open('GET', "edit.php?get_article=true", true);
+        xmlhttp0.open('GET', "edit.php?getData=true", true);
         xmlhttp0.send();  
-
     }
 }
 
 function drawEvent(e) {
-    data.getBlogEntries();
+    data.getData();
 }
 
 function drawEditArticlesEvent(e) {

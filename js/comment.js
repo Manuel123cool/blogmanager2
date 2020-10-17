@@ -68,18 +68,7 @@ let drawCom = {
         let newArray = array;
         newArray.push(whichOne);
         dataCom.array.forEach( (elem) => {
-            let staysEqual = true;
-            let until = newArray.length;
-            if (elem[3].length > until) {
-                until = elem[3].length 
-            } 
-            for (let i = 0; i < until; ++i) {
-                if (elem[3][i] != newArray[i]) {
-                    staysEqual = false;
-                } 
-            }
-
-            if (staysEqual && drawOnce) { 
+            if (dataCom.compareArray(elem[3], newArray) && drawOnce) { 
                 drawOnce = false;
                 let showReply = document.createElement("button");
                 showReply.setAttribute("class", "show_reply");
@@ -167,18 +156,11 @@ let drawCom = {
     }
 }
 
-class ReplyIsOn {
-    constructor(isOn, index) {
-        this.isOn = isOn;
-        this.index = index;
-    }
-}
-
 let dataCom = {
     array: Array(),
-    showReplyIsOn: Array(),
     replyOn: false,
     replyIndex: Array(), 
+    replyElem: null,
     siteIndex1: -1,
     siteIndex2: -1,
     sendData: function(name, date, text) {
@@ -213,42 +195,55 @@ let dataCom = {
         xmlhttp0.open('GET', "php/comment.php?getData=true&siteIndex1=" + this.siteIndex1 +
                         "&siteIndex2=" + this.siteIndex2, true);
         xmlhttp0.send();  
- 
+    },
+    compareArray(array1, array2) {
+        let until = array1.length;
+        if (array2.length != array1.length) {
+            return false;
+        } 
+        for (let i = 0; i < until; ++i) {
+            if (array1[i] != array2[i]) {
+                return false;
+            } 
+        }
+        return true;
     }
 }
 
 function drawCommentEvent(e) {
     e.preventDefault();
+    let comment = document.getElementById("comment").value;
+    let name = document.getElementById("name").value;
+
+    let dateObj = new Date();
+    let dateString = dateObj.toDateString(); 
+ 
+    let array = Array(); 
+    array[0] = comment;
+    array[1] = name;
+    array[2] = dateString;
+    array[3] = Array();
+    if (dataCom.replyOn) {
+        array[3] = dataCom.replyIndex;
+    } else {
+        array[3][0] = "noReplyIndex";
+    }    
+    dataCom.array.push(array);
+    console.log(dataCom.array);
+
     if (!dataCom.replyOn) {
         drawCom.drawComment(); 
     } else {
-        let comment = document.getElementById("comment").value;
-        let name = document.getElementById("name").value;
-    
-        let dateObj = new Date();
-        let dateString = dateObj.toDateString(); 
-            
-        let myDraw = true;
+        let length = dataCom.replyIndex.length
         dataCom.array.forEach( elem => {
-            if (dataCom.replyIndex[0] == elem[3][0]) {
-                myDraw = false;
+            if (dataCom.compareArray(elem[3], dataCom.replyIndex)) {
+                let showReply = document.createElement("button");
+                showReply.setAttribute("class", "show_reply");
+                showReply.innerHTML = "show reply";
+                dataCom.replyElem.childNodes[0].appendChild(showReply);
+                showReply.addEventListener("click", showReplyEvent);
             }
         }); 
-        if (myDraw) {
-            let showReply = document.createElement("button");
-            showReply.setAttribute("class", "show_reply");
-            showReply.innerHTML = "show reply";
-            drawCom.wrapper.childNodes[dataCom.replyIndex[0]].
-                childNodes[0].appendChild(showReply);
-            showReply.addEventListener("click", showReplyEvent);
-        }
- 
-        let array = Array(); 
-        array[0] = comment;
-        array[1] = name;
-        array[2] = dateString;
-        array[3] = dataCom.replyIndex;
-        dataCom.array.push(array);
 
         dataCom.sendData(name, dateString, comment);
     }
@@ -265,6 +260,9 @@ function replyEvent(e) {
     let elemNot0px = true;
     let count1 = 0;
     let nextNode = e.currentTarget.parentNode.parentNode;
+
+    dataCom.replyElem = nextNode;
+
     let marginChanged = false;
     let previousMargin = nextNode.style.marginLeft;
     while (elemNot0px) {
@@ -305,6 +303,7 @@ function cancelReplyEvent(e) {
 
     dataCom.replyOn = false;
     dataCom.replyIndex[0] = "noReplyIndex";
+    dataCom.replyElem = null;
 }
 
 function showReplyEvent(e) {
@@ -356,8 +355,8 @@ function showReplyEvent(e) {
     }
 
     array.reverse();
-    console.log(array);
-    
+    console.log(array); 
+
     let count2 = 0;
     let count3 = 0;
 
@@ -373,19 +372,9 @@ function showReplyEvent(e) {
     }); 
      
     dataCom.array.forEach( (elem) => {
-        let staysEqual = true;
-        let until = length;
-        if (elem[3].length != length) {
-            staysEqual = false;
-        } 
-        for (let i = 0; i < until; ++i) {
-            if (elem[3][i] != array[i]) {
-                staysEqual = false;
-            } 
-        }
-        if (staysEqual && myDelete) {
+        if (dataCom.compareArray(elem[3], array) && myDelete) {
             drawCom.deleteReply(drawCom.wrapper.childNodes[indexReference]);
-        } else if (staysEqual) {
+        } else if (dataCom.compareArray(elem[3], array)) {
             drawCom.drawReply(drawCom.wrapper.childNodes[indexReference], elem[1], 
                     elem[0], elem[2], length, array, count2);
             count2++;
