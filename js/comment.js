@@ -93,8 +93,6 @@ let drawCom = {
         referenceNode.nextSibling.remove(); 
     },
     drawComments: function(array) {
-        //console.log(array);
-        
         let count = 0;
         array.forEach( (elem) => {
             if (elem[3][0] != "noReplyIndex") {
@@ -123,7 +121,7 @@ let drawCom = {
 
             let drawOnce = true;
             array.forEach( (elem1) => {
-                if (elem1[3] == count && drawOnce) { 
+                if (elem1[3][0] == count && drawOnce) { 
                     drawOnce = false;
                     let showReply = document.createElement("button");
                     showReply.setAttribute("class", "show_reply");
@@ -163,7 +161,7 @@ let dataCom = {
     replyElem: null,
     siteIndex1: -1,
     siteIndex2: -1,
-    sendData: function(name, date, text) {
+    sendData(name, date, text) {
         var xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
@@ -174,14 +172,14 @@ let dataCom = {
         xmlhttp0.open('POST', "php/comment.php", true);
         xmlhttp0.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         let replyIndex = ['noReplyIndex'];
-        if (this.replyIndex.length > 0) {
+        if (this.replyOn) {
             replyIndex = this.replyIndex;
         }
         xmlhttp0.send("name=" + name + "&date=" + date + "&comment=" + text + 
             "&replyIndex=" + JSON.stringify(replyIndex) +
                 "&siteIndex1=" + this.siteIndex1 + "&siteIndex2=" + this.siteIndex2);
     },
-    getData: function() {
+    getData() {
         let xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
@@ -229,12 +227,10 @@ function drawCommentEvent(e) {
         array[3][0] = "noReplyIndex";
     }    
     dataCom.array.push(array);
-    console.log(dataCom.array);
 
     if (!dataCom.replyOn) {
         drawCom.drawComment(); 
     } else {
-        let length = dataCom.replyIndex.length
         dataCom.array.forEach( elem => {
             if (dataCom.compareArray(elem[3], dataCom.replyIndex)) {
                 let showReply = document.createElement("button");
@@ -292,7 +288,6 @@ function replyEvent(e) {
         } 
     }
     dataCom.replyIndex.reverse();
-    console.log(dataCom.replyIndex);
     dataCom.replyOn = true;
 }
 function cancelReplyEvent(e) { 
@@ -302,7 +297,7 @@ function cancelReplyEvent(e) {
     replyCancel.innerHTML = "";        
 
     dataCom.replyOn = false;
-    dataCom.replyIndex[0] = "noReplyIndex";
+    //dataCom.replyIndex[0] = "noReplyIndex";
     dataCom.replyElem = null;
 }
 
@@ -346,7 +341,7 @@ function showReplyEvent(e) {
         let firstNum = currentNode.style.marginLeft.substring(0, 
                currentNode.style.marginLeft.length - 2);
  
-        let secondNum = currentNode.nextSibling.style.marginLeft.substring(0, 
+        let secondNum = currentNode.nextSibling.style.marginLeft.substring(0,  
                currentNode.nextSibling.style.marginLeft.length - 2);
         
         if (firstNum < secondNum) {
@@ -355,7 +350,6 @@ function showReplyEvent(e) {
     }
 
     array.reverse();
-    console.log(array); 
 
     let count2 = 0;
     let count3 = 0;
@@ -372,14 +366,13 @@ function showReplyEvent(e) {
     }); 
      
     dataCom.array.forEach( (elem) => {
-        if (dataCom.compareArray(elem[3], array) && myDelete) {
-            drawCom.deleteReply(drawCom.wrapper.childNodes[indexReference]);
-        } else if (dataCom.compareArray(elem[3], array)) {
+        if (dataCom.compareArray(elem[3], array)) {
             drawCom.drawReply(drawCom.wrapper.childNodes[indexReference], elem[1], 
                     elem[0], elem[2], length, array, count2);
             count2++;
         } 
     });
+
     let untilMarginSmaller = true;
     let node = e.currentTarget.parentNode.parentNode;
     let startNum = node.style.marginLeft.substring(0, 
