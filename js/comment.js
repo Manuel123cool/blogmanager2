@@ -2,67 +2,72 @@
 
 let drawCom = {
     wrapper: document.getElementById("comment_wrapper"),
-    drawComment: function() {
-        let article = document.createElement('article');        
+    createCommentData(article) {
         let comment_data = document.createElement("div");
         comment_data.setAttribute("class", "comment_data");
         article.appendChild(comment_data);
-
+        return comment_data;
+    },
+    createName(commentData, nameTxt) {
         let name = document.createElement("span");
-        name.innerHTML = document.getElementById("name").value;
+        name.innerHTML = nameTxt; 
         name.setAttribute("class", "name_span");
-        comment_data.appendChild(name);
-
+        commentData.appendChild(name);
+    },
+    createDate(commentData, dateTxt = "default") {
         let date = document.createElement("span");
         let dateObj = new Date();
         let dateString = dateObj.toDateString(); 
+        if (dateTxt != "default") {
+            dateString = dateTxt;
+        }
         date.innerHTML = dateString;
         date.setAttribute("class", "date_span");
-        comment_data.appendChild(date);
-        
+        commentData.appendChild(date);
+    },
+    createReply(commentData) {
         let reply = document.createElement("button");
         reply.setAttribute("class", "reply_button");
         reply.innerHTML = "reply";
-        comment_data.appendChild(reply);
-       
-        reply.addEventListener("click", replyEvent);
-        article.appendChild(comment_data);
+        commentData.appendChild(reply);
 
+        reply.addEventListener("click", replyEvent);
+    },
+    createText(article, commentTxt) {
         let p = document.createElement("span");
         p.setAttribute("class", "text_span");
-        p.innerHTML = document.getElementById("comment").value;
+        p.innerHTML = commentTxt; 
         article.appendChild(p);
+    },
+    drawComment: function() {
+        let article = document.createElement('article');        
+
+        let commentData = this.createCommentData(article);
+        this.createName(commentData, document.getElementById("name").value);
+        this.createDate(commentData);
+        this.createReply(commentData);
+
+        article.appendChild(commentData);
+
+        this.createText(article, document.getElementById("comment").value);
 
         drawCom.wrapper.appendChild(article);
         
-        dataCom.sendData(name.innerHTML, date.innerHTML, p.innerHTML); 
+        dataCom.sendData(article.childNodes[0].childNodes[0].innerHTML, 
+            article.childNodes[0].childNodes[1].innerHTML, article.
+                childNodes[1].innerHTML); 
     },
     drawReply: function(referenceNode, name, comment, date, margin, array, whichOne) {
         let article = document.createElement('article');        
         
         article.setAttribute("style", "margin-left: " + (20 * margin) + "px;");
 
-        let comment_data = document.createElement("div");
-        comment_data.setAttribute("class", "comment_data");
-        article.appendChild(comment_data);
+        let commentData = this.createCommentData(article);
+        this.createName(commentData, name);
+        this.createDate(commentData, date);
+        this.createReply(commentData);
 
-        let nameElem = document.createElement("span");
-        nameElem.innerHTML = name;
-        nameElem.setAttribute("class", "name_span");
-        comment_data.appendChild(nameElem);
-
-        let dateElem = document.createElement("span");
-        dateElem.innerHTML = date;
-        dateElem.setAttribute("class", "date_span");
-        comment_data.appendChild(dateElem);
-        
-        let reply = document.createElement("button");
-        reply.setAttribute("class", "reply_button");
-        reply.innerHTML = "reply";
-        comment_data.appendChild(reply);
-       
-        reply.addEventListener("click", replyEvent);
-        article.appendChild(comment_data);
+        article.appendChild(commentData);
 
         let drawOnce = true;
 
@@ -80,17 +85,14 @@ let drawCom = {
                 let showReply = document.createElement("button");
                 showReply.setAttribute("class", "show_reply");
                 showReply.innerHTML = "show reply";
-                comment_data.appendChild(showReply);
+                commentData.appendChild(showReply);
                 
                 showReply.addEventListener("click", showReplyEvent);
             }
         });
+        
+        this.createText(article, comment);
 
-        let p = document.createElement("span");
-        p.setAttribute("class", "text_span");
-        p.innerHTML = comment;
-        article.appendChild(p);
-            
         function insertAfter(newNode, referenceNode) {
             referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
         }
@@ -107,24 +109,10 @@ let drawCom = {
             }
             let article = document.createElement('article');        
 
-            let comment_data = document.createElement("div");
-            comment_data.setAttribute("class", "comment_data");
-            article.appendChild(comment_data);
-
-            let name = document.createElement("span");
-            name.innerHTML = elem[1];
-            name.setAttribute("class", "name_span");
-            comment_data.appendChild(name);
-
-            let date = document.createElement("span");
-            date.innerHTML = elem[2];
-            date.setAttribute("class", "date_span");
-            comment_data.appendChild(date);
-            
-            let reply = document.createElement("button");
-            reply.setAttribute("class", "reply_button");
-            reply.innerHTML = "reply";
-            comment_data.appendChild(reply);
+            let commentData = this.createCommentData(article);
+            this.createName(commentData, elem[1]);
+            this.createDate(commentData, elem[2]);
+            this.createReply(commentData);
 
             let drawOnce = true;
             array.forEach( (elem1) => {
@@ -133,19 +121,15 @@ let drawCom = {
                     let showReply = document.createElement("button");
                     showReply.setAttribute("class", "show_reply");
                     showReply.innerHTML = "show reply";
-                    comment_data.appendChild(showReply);
+                    commentData.appendChild(showReply);
                     
                     showReply.addEventListener("click", showReplyEvent);
                 }
             });
 
-            reply.addEventListener("click", replyEvent);
-            article.appendChild(comment_data);
+            article.appendChild(commentData);
 
-            let p = document.createElement("span");
-            p.setAttribute("class", "text_span");
-            p.innerHTML = elem[0];
-            article.appendChild(p);
+            this.createText(article, elem[0]);
 
             drawCom.wrapper.appendChild(article);
             count++;
@@ -249,25 +233,58 @@ let dataCom = {
         }
         arrayForPush.reverse();
     },
-    reCurrentNode(indexArray) {
-        let start = false;
+    reReferenceNode(indexArray) {
+        let object = {
+            count: null,
+            node: null
+        };
         let previousElem = dataCom.replyElem;
-        drawCom.wrapper.forEach( elem => {
-            let firstNum = elem.style.marginLeft.substring(0, 
-               elem.style.marginLeft.length - 2);
+        let currentElem = dataCom.replyElem.nextSibling;
+        if (currentElem == null) {
+            object.count = 0;
+            object.node = previousElem; 
+            return object;
+        }
+        let firstIsDifferent = false;
 
-            let secondNum = previousElem.style.marginLeft.substring(0, 
-               prevoiusElem.style.marginLeft.length - 2);
+        let firstNum = currentElem.style.marginLeft.substring(0, 
+            currentElem.style.marginLeft.length - 2);
+    
+        let secondNum = previousElem.style.marginLeft.substring(0, 
+            previousElem.style.marginLeft.length - 2);
 
-            if (Number(firstNum) < Number(secondNum)) {
-
-            } else {
-                
-            } 
-        });     
-    },
-    reLastInChain(currentNode) {
-         
+        if (Number(firstNum) > secondNum) {
+            firstIsDifferent = true; 
+        } else {
+            object.count = 0;
+            object.node = dataCom.replyElem; 
+            return object;
+        }
+        
+        let sameMargin = true;
+        previousElem = currentElem;
+        if (!previousElem.nextSibling) {
+            object.count = 0;
+            object.node = currentElem; 
+            return object;
+        } 
+        currentElem = previousElem.nextSibling 
+        let count = 1;
+        while (sameMargin && firstIsDifferent) {
+            if (currentElem.style.marginLeft != previousElem.style.marginLeft) {    
+                object.count = count;
+                object.node = previousElem; 
+                return object; 
+            }
+            if (!currentElem.nextSibling) {
+                object.count = count;
+                object.node = currentElem; 
+                return object; 
+            }
+            previousElem = currentElem;
+            currentElem = currentElem.nextSibling;
+            count++;
+        }     
     }
 }
 
@@ -296,6 +313,14 @@ function drawCommentEvent(e) {
     if (!dataCom.replyOn) {
         drawCom.drawComment(); 
     } else {
+        let currentNode = dataCom.reReferenceNode(dataCom.replyIndex).node;
+        let count = dataCom.reReferenceNode(dataCom.replyIndex).count;
+        if (currentNode != dataCom.replyElem) {
+            drawCom.drawReply(currentNode, name, 
+                    comment, dateString, dataCom.replyIndex.length, 
+                        dataCom.replyIndex, count + 1);
+        }
+
         let watchDouble = false;
         let checkShowReply = false;
         let count4 = 0;
@@ -329,7 +354,6 @@ function replyEvent(e) {
     replyCancel.addEventListener("click", cancelReplyEvent);
     
     dataCom.findCurrentPos(dataCom.replyIndex, e.currentTarget);
-    console.log(dataCom.replyIndex);
     dataCom.replyOn = true;
 }
 
