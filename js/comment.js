@@ -65,7 +65,14 @@ let drawCom = {
         article.appendChild(comment_data);
 
         let drawOnce = true;
-        let newArray = array;
+
+        let newArray = Array(); 
+        let count6 = 0;
+        array.forEach( elem => {
+            newArray[count6] = elem; 
+            count6++;
+        });
+
         newArray.push(whichOne);
         dataCom.array.forEach( (elem) => {
             if (dataCom.compareArray(elem[3], newArray) && drawOnce) { 
@@ -171,10 +178,7 @@ let dataCom = {
         });
         xmlhttp0.open('POST', "php/comment.php", true);
         xmlhttp0.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        let replyIndex = ['noReplyIndex'];
-        if (this.replyOn) {
-            replyIndex = this.replyIndex;
-        }
+        let replyIndex = this.replyIndex;
         xmlhttp0.send("name=" + name + "&date=" + date + "&comment=" + text + 
             "&replyIndex=" + JSON.stringify(replyIndex) +
                 "&siteIndex1=" + this.siteIndex1 + "&siteIndex2=" + this.siteIndex2);
@@ -187,6 +191,7 @@ let dataCom = {
                 //console.log(responseText);
                 let result = JSON.parse(responseText);
                 this.array = result;
+                this.replyIndex[0] = "noReplyIndex";
                 drawCom.drawComments(result);
             }
         });
@@ -205,6 +210,64 @@ let dataCom = {
             } 
         }
         return true;
+    },
+    findCurrentPos(arrayForPush, currentTarget) {
+        arrayForPush.splice(0, arrayForPush.length);
+        let elemNot0px = true;
+        let count1 = 0;
+        let nextNode = currentTarget.parentNode.parentNode;
+
+        dataCom.replyElem = nextNode;
+
+        let marginChanged = false;
+        let previousMargin = nextNode.style.marginLeft;
+        while (elemNot0px) {
+            previousMargin = nextNode.style.marginLeft;
+            if (nextNode.style.marginLeft == "") {
+                let count = 0;
+                drawCom.wrapper.childNodes.forEach( elem => {
+                    if (elem == nextNode) {
+                        arrayForPush.push(count);
+                        elemNot0px = false;
+                    }
+                    if (elem.style.marginLeft == "") {
+                        count++;
+                    }
+                }); 
+            } 
+            if (!elemNot0px) {
+                break;
+            }
+            nextNode = nextNode.previousSibling;
+            if (nextNode.style.marginLeft != previousMargin) {
+                arrayForPush.push(count1);
+                count1 = 0;
+            }
+            else {
+                count1++;
+            } 
+        }
+        arrayForPush.reverse();
+    },
+    reCurrentNode(indexArray) {
+        let start = false;
+        let previousElem = dataCom.replyElem;
+        drawCom.wrapper.forEach( elem => {
+            let firstNum = elem.style.marginLeft.substring(0, 
+               elem.style.marginLeft.length - 2);
+
+            let secondNum = previousElem.style.marginLeft.substring(0, 
+               prevoiusElem.style.marginLeft.length - 2);
+
+            if (Number(firstNum) < Number(secondNum)) {
+
+            } else {
+                
+            } 
+        });     
+    },
+    reLastInChain(currentNode) {
+         
     }
 }
 
@@ -221,25 +284,38 @@ function drawCommentEvent(e) {
     array[1] = name;
     array[2] = dateString;
     array[3] = Array();
-    if (dataCom.replyOn) {
-        array[3] = dataCom.replyIndex;
-    } else {
-        array[3][0] = "noReplyIndex";
-    }    
+    
+    let count6 = 0;
+    dataCom.replyIndex.forEach( elem => {
+        array[3][count6] = elem;
+        count6++;
+    });
     dataCom.array.push(array);
 
+    
     if (!dataCom.replyOn) {
         drawCom.drawComment(); 
     } else {
+        let watchDouble = false;
+        let checkShowReply = false;
+        let count4 = 0;
         dataCom.array.forEach( elem => {
             if (dataCom.compareArray(elem[3], dataCom.replyIndex)) {
-                let showReply = document.createElement("button");
-                showReply.setAttribute("class", "show_reply");
-                showReply.innerHTML = "show reply";
-                dataCom.replyElem.childNodes[0].appendChild(showReply);
-                showReply.addEventListener("click", showReplyEvent);
+                if (count4 == 1) {
+                    watchDouble = true;
+                }
+                checkShowReply = true;
+                count4++; 
             }
         }); 
+
+        if (checkShowReply && !watchDouble) {
+            let showReply = document.createElement("button");
+            showReply.setAttribute("class", "show_reply");
+            showReply.innerHTML = "show reply";
+            dataCom.replyElem.childNodes[0].appendChild(showReply);
+            showReply.addEventListener("click", showReplyEvent)
+        }
 
         dataCom.sendData(name, dateString, comment);
     }
@@ -252,44 +328,11 @@ function replyEvent(e) {
     replyCancel.innerHTML = "cancel reply";        
     replyCancel.addEventListener("click", cancelReplyEvent);
     
-    dataCom.replyIndex = Array();
-    let elemNot0px = true;
-    let count1 = 0;
-    let nextNode = e.currentTarget.parentNode.parentNode;
-
-    dataCom.replyElem = nextNode;
-
-    let marginChanged = false;
-    let previousMargin = nextNode.style.marginLeft;
-    while (elemNot0px) {
-        previousMargin = nextNode.style.marginLeft;
-        if (nextNode.style.marginLeft == "") {
-            let count = 0;
-            drawCom.wrapper.childNodes.forEach( elem => {
-                if (elem == nextNode) {
-                    dataCom.replyIndex.push(count);
-                    elemNot0px = false;
-                }
-                if (elem.style.marginLeft == "") {
-                    count++;
-                }
-            }); 
-        } 
-        if (!elemNot0px) {
-            break;
-        }
-        nextNode = nextNode.previousSibling;
-        if (nextNode.style.marginLeft != previousMargin) {
-            dataCom.replyIndex.push(count1);
-            count1 = 0;
-        }
-        else {
-            count1++;
-        } 
-    }
-    dataCom.replyIndex.reverse();
+    dataCom.findCurrentPos(dataCom.replyIndex, e.currentTarget);
+    console.log(dataCom.replyIndex);
     dataCom.replyOn = true;
 }
+
 function cancelReplyEvent(e) { 
     e.preventDefault();
 
@@ -297,43 +340,13 @@ function cancelReplyEvent(e) {
     replyCancel.innerHTML = "";        
 
     dataCom.replyOn = false;
-    //dataCom.replyIndex[0] = "noReplyIndex";
+    dataCom.replyIndex[0] = "noReplyIndex";
     dataCom.replyElem = null;
 }
 
 function showReplyEvent(e) {
     let array = Array();
-    let elemNot0px = true;
-    let count1 = 0;
-    let nextNode = e.currentTarget.parentNode.parentNode;
-    let marginChanged = false;
-    let previousMargin = nextNode.style.marginLeft;
-    while (elemNot0px) {
-        previousMargin = nextNode.style.marginLeft;
-        if (nextNode.style.marginLeft == "") {
-            let count = 0;
-            drawCom.wrapper.childNodes.forEach( elem => {
-                if (elem == nextNode) {
-                    array.push(count);
-                    elemNot0px = false;
-                }
-                if (elem.style.marginLeft == "") {
-                    count++;
-                }
-            }); 
-        } 
-        if (!elemNot0px) {
-            break;
-        }
-        nextNode = nextNode.previousSibling;
-        if (nextNode.style.marginLeft != previousMargin) {
-            array.push(count1);
-            count1 = 0;
-        }
-        else { 
-            count1++;
-        }
-    }
+    dataCom.findCurrentPos(array, e.currentTarget);
 
     let currentNode = e.currentTarget.parentNode.parentNode;
     let myDelete = false;
@@ -349,11 +362,6 @@ function showReplyEvent(e) {
         }
     }
 
-    array.reverse();
-
-    let count2 = 0;
-    let count3 = 0;
-
     //get index
     let count = 0;
     let indexReference = 0;
@@ -365,11 +373,13 @@ function showReplyEvent(e) {
         count++;
     }); 
      
+    let count2 = 0;
     dataCom.array.forEach( (elem) => {
         if (dataCom.compareArray(elem[3], array)) {
             drawCom.drawReply(drawCom.wrapper.childNodes[indexReference], elem[1], 
                     elem[0], elem[2], length, array, count2);
             count2++;
+            indexReference++;
         } 
     });
 
