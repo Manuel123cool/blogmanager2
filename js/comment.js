@@ -247,16 +247,10 @@ let dataCom = {
         console.log(arrayForPush);
     },
     reReferenceNode(indexArray) {
-        let object = {
-            count: null,
-            node: null
-        };
         let previousElem = dataCom.replyElem;
         let currentElem = dataCom.replyElem.nextSibling;
         if (currentElem == null) {
-            object.count = 0;
-            object.node = previousElem; 
-            return object;
+            return previousElem; 
         }
         let firstIsDifferent = false;
 
@@ -269,30 +263,22 @@ let dataCom = {
         if (Number(firstNum) > secondNum) {
             firstIsDifferent = true; 
         } else {
-            object.count = 0;
-            object.node = dataCom.replyElem; 
-            return object;
+            return dataCom.replyElem; 
         }
         
         let sameMargin = true;
         previousElem = currentElem;
         if (!previousElem.nextSibling) {
-            object.count = 0;
-            object.node = currentElem; 
-            return object;
+            return currentElem; 
         } 
         currentElem = previousElem.nextSibling 
         let count = 1;
         while (sameMargin && firstIsDifferent) {
             if (currentElem.style.marginLeft != previousElem.style.marginLeft) {    
-                object.count = count;
-                object.node = previousElem; 
-                return object; 
+                return previousElem; 
             }
             if (!currentElem.nextSibling) {
-                object.count = count;
-                object.node = currentElem; 
-                return object; 
+                return currentElem; 
             }
             previousElem = currentElem;
             currentElem = currentElem.nextSibling;
@@ -325,12 +311,11 @@ function drawCommentEvent(e) {
     if (!dataCom.replyOn) {
         drawCom.drawComment(); 
     } else {
-        let currentNode = dataCom.reReferenceNode(dataCom.replyIndex).node;
-        let count = dataCom.reReferenceNode(dataCom.replyIndex).count;
+        let currentNode = dataCom.reReferenceNode(dataCom.replyIndex);
         if (currentNode != dataCom.replyElem) {
             drawCom.drawReply(currentNode, name, 
                     comment, dateString, dataCom.replyIndex.length, 
-                        dataCom.replyIndex, count + 1);
+                        dataCom.replyIndex, 10000);
         }
 
         let watchDouble = false;
