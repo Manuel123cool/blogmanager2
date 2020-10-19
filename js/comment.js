@@ -209,21 +209,41 @@ let dataCom = {
                 currentTarget.style.marginLeft.length - 2);
             marginArray.push(Number(marginNum));
         }
-        marginArray.reverse();
-
-        arrayForPush.push(0);
-
-        let targetMargin = marginArray[marginArray.length - 1];
+     
         let previousMargin = marginArray[0];
+        let stopCounting = false;
         let count1 = 0;
         for (let i = 1; i < marginArray.length; i++) {
-            if (previousMargin < marginArray[i]) {
-                arrayForPush.push(count1); 
-            } else if (previousMargin == marginArray[i]) {
-                count1++; 
+            let dontCountOnce = false;
+            if (marginArray[i] < previousMargin) {
+                if (stopCounting) {
+                    stopCounting = false;
+                } else {
+                    arrayForPush.push(count1); 
+                    dontCountOnce = true;
+                    count1 = 0;
+                }
             } 
+            if (marginArray[i] > previousMargin) {
+                count1 = 0;
+                stopCounting = true; 
+            }
+            if (!stopCounting && !dontCountOnce) {
+                count1++; 
+            }
             previousMargin = marginArray[i];
         }
+
+        let count3 = 0;
+        marginArray.forEach( elem => {
+            if (elem == 0) {
+                count3 += 1;
+            }
+        });
+        arrayForPush.push(count3 - 1);
+
+
+        arrayForPush.reverse(); 
         console.log(arrayForPush);
     },
     reReferenceNode(indexArray) {
