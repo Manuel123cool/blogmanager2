@@ -366,6 +366,7 @@ function replyEvent(e) {
     replyCancel.addEventListener("click", cancelReplyEvent);
     
     dataCom.findCurrentPos(dataCom.replyIndex, e.currentTarget);
+    dataCom.replyElem = e.currentTarget.parentNode.parentNode;
     dataCom.replyOn = true;
 }
 
