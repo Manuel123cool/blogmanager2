@@ -197,41 +197,34 @@ let dataCom = {
     },
     findCurrentPos(arrayForPush, currentTarget) {
         arrayForPush.splice(0, arrayForPush.length);
-        let elemNot0px = true;
-        let count1 = 0;
-        let nextNode = currentTarget.parentNode.parentNode;
-
-        dataCom.replyElem = nextNode;
-
-        let marginChanged = false;
-        let previousMargin = nextNode.style.marginLeft;
-        while (elemNot0px) {
-            previousMargin = nextNode.style.marginLeft;
-            if (nextNode.style.marginLeft == "") {
-                let count = 0;
-                drawCom.wrapper.childNodes.forEach( elem => {
-                    if (elem == nextNode) {
-                        arrayForPush.push(count);
-                        elemNot0px = false;
-                    }
-                    if (elem.style.marginLeft == "") {
-                        count++;
-                    }
-                }); 
-            } 
-            if (!elemNot0px) {
-                break;
-            }
-            nextNode = nextNode.previousSibling;
-            if (nextNode.style.marginLeft != previousMargin) {
-                arrayForPush.push(count1);
-                count1 = 0;
-            }
-            else {
-                count1++;
-            } 
+        currentTarget = currentTarget.parentNode.parentNode;
+        let marginNum = currentTarget.style.marginLeft.substring(0, 
+            currentTarget.style.marginLeft.length - 2);
+        let marginArray = Array();
+        marginArray[0] = Number(marginNum);
+        let count = 1;
+        while (currentTarget.previousSibling) { 
+            currentTarget = currentTarget.previousSibling;
+            let marginNum = currentTarget.style.marginLeft.substring(0, 
+                currentTarget.style.marginLeft.length - 2);
+            marginArray.push(Number(marginNum));
         }
-        arrayForPush.reverse();
+        marginArray.reverse();
+
+        arrayForPush.push(0);
+
+        let targetMargin = marginArray[marginArray.length - 1];
+        let previousMargin = marginArray[0];
+        let count1 = 0;
+        for (let i = 1; i < marginArray.length; i++) {
+            if (previousMargin < marginArray[i]) {
+                arrayForPush.push(count1); 
+            } else if (previousMargin == marginArray[i]) {
+                count1++; 
+            } 
+            previousMargin = marginArray[i];
+        }
+        console.log(arrayForPush);
     },
     reReferenceNode(indexArray) {
         let object = {
@@ -308,7 +301,6 @@ function drawCommentEvent(e) {
         count6++;
     });
     dataCom.array.push(array);
-
     
     if (!dataCom.replyOn) {
         drawCom.drawComment(); 
