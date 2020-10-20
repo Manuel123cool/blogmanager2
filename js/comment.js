@@ -39,15 +39,18 @@ let drawCom = {
         p.setAttribute("class", "text_span");
         let untilLength = 10;
         if (commentTxt.length > untilLength) {
-            let firstText = commentTxt.slice(0, untilLength + 1);
+            let firstText = commentTxt.slice(0, untilLength);
             let secondText = commentTxt.slice(untilLength, commentTxt.length);
             let firstTxtElem = document.createElement("span"); 
             let secondTxtElem = document.createElement("span"); 
+
             secondTxtElem.style.display = "none";
+
             secondTxtElem.innerHTML = secondText;
+            firstTxtElem.innerHTML = firstText;
         
             let readMore = document.createElement("button");
-            readMore.setAttribute("class", "readMoreButton");
+            readMore.setAttribute("class", "read_more_button");
             readMore.addEventListener("click", readMoreEvent);
             readMore.innerHTML = "read more"
         
@@ -55,7 +58,7 @@ let drawCom = {
             p.appendChild(secondTxtElem);
             p.appendChild(readMore);
         } else {
-            p.innnerHTML = commentTxt;
+            p.innerHTML = commentTxt;
         }
         article.appendChild(p);
     },
@@ -73,9 +76,9 @@ let drawCom = {
 
         drawCom.wrapper.appendChild(article);
         
+        let commentTxt = document.getElementById("comment").value;
         dataCom.sendData(article.childNodes[0].childNodes[0].innerHTML, 
-            article.childNodes[0].childNodes[1].innerHTML, article.
-                childNodes[1].innerHTML); 
+            article.childNodes[0].childNodes[1].innerHTML, commentTxt); 
     },
     drawReply: function(referenceNode, name, comment, date, margin, array, whichOne) {
         let article = document.createElement('article');        
@@ -166,7 +169,7 @@ let drawCom = {
 function readMoreEvent(e) {
     var elem = e.currentTarget.previousSibling;
     if (elem.style.display === "none") {
-        elem.style.display = "block";
+        elem.style.display = "inline";
         e.currentTarget.innerHTML = "read less";
     } else {
         e.currentTarget.innerHTML = "read more";

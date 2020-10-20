@@ -30,3 +30,6 @@
     margin-right: 5px;
 }
 
+#comment_wrapper .read_more_button {
+    display: block;
+}
