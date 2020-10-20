@@ -202,7 +202,6 @@ let dataCom = {
             currentTarget.style.marginLeft.length - 2);
         let marginArray = Array();
         marginArray[0] = Number(marginNum);
-        let count = 1;
         while (currentTarget.previousSibling) { 
             currentTarget = currentTarget.previousSibling;
             let marginNum = currentTarget.style.marginLeft.substring(0, 
@@ -244,46 +243,39 @@ let dataCom = {
 
 
         arrayForPush.reverse(); 
-        console.log(arrayForPush);
     },
-    reReferenceNode(indexArray) {
-        let previousElem = dataCom.replyElem;
-        let currentElem = dataCom.replyElem.nextSibling;
-        if (currentElem == null) {
-            return previousElem; 
+    reReferenceNode() {
+        let currentTarget = dataCom.replyElem;
+        let marginNum = currentTarget.style.marginLeft.substring(0, 
+            currentTarget.style.marginLeft.length - 2);
+        let marginArray = Array();
+        let elemArray = Array();
+        marginArray[0] = Number(marginNum);
+        elemArray.push(currentTarget);
+        while (currentTarget.nextSibling) { 
+            currentTarget = currentTarget.nextSibling;
+            let marginNum = currentTarget.style.marginLeft.substring(0, 
+                currentTarget.style.marginLeft.length - 2);
+            marginArray.push(Number(marginNum));
+            elemArray.push(currentTarget);
         }
-        let firstIsDifferent = false;
-
-        let firstNum = currentElem.style.marginLeft.substring(0, 
-            currentElem.style.marginLeft.length - 2);
-    
-        let secondNum = previousElem.style.marginLeft.substring(0, 
-            previousElem.style.marginLeft.length - 2);
-
-        if (Number(firstNum) > secondNum) {
-            firstIsDifferent = true; 
-        } else {
-            return dataCom.replyElem; 
+        if (marginArray.length == 1) {
+            return elemArray[0];
         }
         
-        let sameMargin = true;
-        previousElem = currentElem;
-        if (!previousElem.nextSibling) {
-            return currentElem; 
-        } 
-        currentElem = previousElem.nextSibling 
-        let count = 1;
-        while (sameMargin && firstIsDifferent) {
-            if (currentElem.style.marginLeft != previousElem.style.marginLeft) {    
-                return previousElem; 
+        let itChanges = false;
+        if (marginArray[1] > marginArray[0]) {
+            itChanges = true; 
+        } else {
+            return elemArray[0]; 
+        }
+        
+        for (let i = 1; i < marginArray.length; ++i) {
+            if (marginArray[i] <= marginArray[0] && itChanges) {
+                return elemArray[i - 1]; 
             }
-            if (!currentElem.nextSibling) {
-                return currentElem; 
-            }
-            previousElem = currentElem;
-            currentElem = currentElem.nextSibling;
-            count++;
-        }     
+        }
+        return elemArray[elemArray.length];
     }
 }
 
@@ -311,7 +303,7 @@ function drawCommentEvent(e) {
     if (!dataCom.replyOn) {
         drawCom.drawComment(); 
     } else {
-        let currentNode = dataCom.reReferenceNode(dataCom.replyIndex);
+        let currentNode = dataCom.reReferenceNode();
         if (currentNode != dataCom.replyElem) {
             drawCom.drawReply(currentNode, name, 
                     comment, dateString, dataCom.replyIndex.length, 
