@@ -210,13 +210,13 @@ let dataCom = {
         }
      
         let previousMargin = marginArray[0];
-        let stopCounting = false;
+        let stopCountingCount = 0;
         let count1 = 0;
         for (let i = 1; i < marginArray.length; i++) {
             let dontCountOnce = false;
             if (marginArray[i] < previousMargin) {
-                if (stopCounting) {
-                    stopCounting = false;
+                if (stopCountingCount != 0) {
+                    stopCountingCount--;
                 } else {
                     arrayForPush.push(count1); 
                     dontCountOnce = true;
@@ -225,9 +225,9 @@ let dataCom = {
             } 
             if (marginArray[i] > previousMargin) {
                 count1 = 0;
-                stopCounting = true; 
+                stopCountingCount++; 
             }
-            if (!stopCounting && !dontCountOnce) {
+            if (stopCountingCount == 0 && !dontCountOnce) {
                 count1++; 
             }
             previousMargin = marginArray[i];
@@ -240,9 +240,8 @@ let dataCom = {
             }
         });
         arrayForPush.push(count3 - 1);
-
-
         arrayForPush.reverse(); 
+        console.log(arrayForPush);
     },
     reReferenceNode() {
         let currentTarget = dataCom.replyElem;
@@ -275,7 +274,7 @@ let dataCom = {
                 return elemArray[i - 1]; 
             }
         }
-        return elemArray[elemArray.length];
+        return elemArray[elemArray.length - 1];
     }
 }
 
