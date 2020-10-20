@@ -1,6 +1,7 @@
 "use strict";
 
 let drawCom = {
+    marginFactor: 20,
     wrapper: document.getElementById("comment_wrapper"),
     createCommentData(article) {
         let comment_data = document.createElement("div");
@@ -36,7 +37,26 @@ let drawCom = {
     createText(article, commentTxt) {
         let p = document.createElement("span");
         p.setAttribute("class", "text_span");
-        p.innerHTML = commentTxt; 
+        let untilLength = 10;
+        if (commentTxt.length > untilLength) {
+            let firstText = commentTxt.slice(0, untilLength + 1);
+            let secondText = commentTxt.slice(untilLength, commentTxt.length);
+            let firstTxtElem = document.createElement("span"); 
+            let secondTxtElem = document.createElement("span"); 
+            secondTxtElem.style.display = "none";
+            secondTxtElem.innerHTML = secondText;
+        
+            let readMore = document.createElement("button");
+            readMore.setAttribute("class", "readMoreButton");
+            readMore.addEventListener("click", readMoreEvent);
+            readMore.innerHTML = "read more"
+        
+            p.appendChild(firstTxtElem);
+            p.appendChild(secondTxtElem);
+            p.appendChild(readMore);
+        } else {
+            p.innnerHTML = commentTxt;
+        }
         article.appendChild(p);
     },
     drawComment: function() {
@@ -60,7 +80,8 @@ let drawCom = {
     drawReply: function(referenceNode, name, comment, date, margin, array, whichOne) {
         let article = document.createElement('article');        
         
-        article.setAttribute("style", "margin-left: " + (20 * margin) + "px;");
+        article.setAttribute("style", "margin-left: " + 
+            (this.marginFactor * margin) + "px;");
 
         let commentData = this.createCommentData(article);
         this.createName(commentData, name);
@@ -97,9 +118,6 @@ let drawCom = {
             referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
         }
         insertAfter(article, referenceNode);
-    },
-    deleteReply: function(referenceNode) {
-        referenceNode.nextSibling.remove(); 
     },
     drawComments: function(array) {
         let count = 0;
@@ -142,6 +160,17 @@ let drawCom = {
         dataCom.getData();
         let submit = document.getElementById("submit");
         submit.addEventListener("click", drawCommentEvent);
+    }
+}
+
+function readMoreEvent(e) {
+    var elem = e.currentTarget.previousSibling;
+    if (elem.style.display === "none") {
+        elem.style.display = "block";
+        e.currentTarget.innerHTML = "read less";
+    } else {
+        e.currentTarget.innerHTML = "read more";
+        elem.style.display = "none";
     }
 }
 
@@ -219,13 +248,15 @@ let dataCom = {
                     stopCountingCount--;
                 } else {
                     arrayForPush.push(count1); 
-                    dontCountOnce = true;
                     count1 = 0;
+                    dontCountOnce = true;
                 }
             } 
             if (marginArray[i] > previousMargin) {
                 count1 = 0;
-                stopCountingCount++; 
+                let marginDifferences = marginArray[i] - previousMargin;
+                let countPlus = marginDifferences / drawCom.marginFactor;
+                stopCountingCount += countPlus;
             }
             if (stopCountingCount == 0 && !dontCountOnce) {
                 count1++; 
