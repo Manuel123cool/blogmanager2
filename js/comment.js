@@ -2,7 +2,10 @@
 
 let drawCom = {
     marginFactor: 20,
+    siteLength: 3,
+    currentSite: null,
     wrapper: document.getElementById("comment_wrapper"),
+    indexWrapper: document.getElementById("index_wrapper"),
     createCommentData(article) {
         let comment_data = document.createElement("div");
         comment_data.setAttribute("class", "comment_data");
@@ -122,10 +125,17 @@ let drawCom = {
         }
         insertAfter(article, referenceNode);
     },
-    drawComments: function(array) {
-        let count = 0;
+    drawComments: function(array, fromZeroTo, from = 10000, to = -1) {
+        let count = this.currentSite * this.siteLength;
+        let noRepliesCount = 0;
         array.forEach( (elem) => {
             if (elem[3][0] != "noReplyIndex") {
+                return;
+            } else {
+                noRepliesCount++;
+            }
+            if (noRepliesCount <= fromZeroTo || noRepliesCount >= from && 
+                    noRepliesCount <= to) {
                 return;
             }
             let article = document.createElement('article');        
@@ -156,6 +166,37 @@ let drawCom = {
             count++;
         });
     },
+    drawIndexes(numberOfPages) {
+        for (let i = 0; i < numberOfPages; ++i) {
+            let indexLink = document.createElement('a');
+            indexLink.innerHTML = i + 1;     
+            indexLink.setAttribute('href', '');
+            this.indexWrapper.appendChild(indexLink);
+
+            indexLink.addEventListener('click', indexLinkEvent);  
+        }
+    },
+    splitComments(array) {
+        let length = 0;
+        array.forEach( elem => {
+            if (elem[3] == "noReplyIndex") {
+                length++;
+            } 
+        });
+        let numberOfPages = 1;
+        if (length > this.siteLength) {
+            numberOfPages = Math.floor(length/this.siteLength); 
+            if (length % this.siteLength > 0) {
+                numberOfPages++;
+            }
+            this.currentSite = numberOfPages;
+            this.drawComments(array, (numberOfPages - 1) * this.siteLength);
+            this.drawIndexes(numberOfPages);
+        } else {
+            this.currentSite = numberOfPages;
+            this.drawComments(array);
+        }
+    },
     draw: function(index1, index2) {
         dataCom.siteIndex1 = index1;
         dataCom.siteIndex2 = index2;
@@ -163,6 +204,27 @@ let drawCom = {
         dataCom.getData();
         let submit = document.getElementById("submit");
         submit.addEventListener("click", drawCommentEvent);
+    }
+}
+
+function indexLinkEvent(e) {
+    e.preventDefault();
+    let index = Number(e.currentTarget.innerHTML - 1);
+    drawCom.currentSite = index; 
+    drawCom.wrapper.innerHTML = "";
+     
+    let length = 0;
+    dataCom.array.forEach( elem => {
+        if (elem[3] == "noReplyIndex") {
+            length++;
+        } 
+    });
+ 
+    if (index != 0) {
+        drawCom.drawComments(dataCom.array, index * drawCom.siteLength, 
+            index * drawCom.siteLength + drawCom.siteLength + 1, length);
+    } else {
+        drawCom.drawComments(dataCom.array, -1, 1 * drawCom.siteLength + 1, length);
     }
 }
 
@@ -206,9 +268,9 @@ let dataCom = {
                 let responseText = xmlhttp0.responseText;
                 //console.log(responseText);
                 let result = JSON.parse(responseText);
-                this.array = result;
+                this.array = JSON.parse(responseText);
                 this.replyIndex[0] = "noReplyIndex";
-                drawCom.drawComments(result);
+                drawCom.splitComments(result);
             }
         });
         xmlhttp0.open('GET', "php/comment.php?getData=true&siteIndex1=" + this.siteIndex1 +
@@ -273,7 +335,7 @@ let dataCom = {
                 count3 += 1;
             }
         });
-        arrayForPush.push(count3 - 1);
+        arrayForPush.push((count3 - 1) + (drawCom.currentSite * drawCom.siteLength));
         arrayForPush.reverse(); 
         console.log(arrayForPush);
     },
@@ -332,6 +394,8 @@ function drawCommentEvent(e) {
         count6++;
     });
     dataCom.array.push(array);
+
+ 
     
     if (!dataCom.replyOn) {
         drawCom.drawComment(); 

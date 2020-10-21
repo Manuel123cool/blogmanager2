@@ -110,6 +110,7 @@ let data = {
     drawHeaderPage: function() {
         document.getElementById("from_wrapper").setAttribute("style", "display: none;");
         drawCom.wrapper.textContent = "";
+        drawCom.indexWrapper.textContent = "";
         draw.drawIndexPage();
     },
     drawArticle: function(index1, index2) {
