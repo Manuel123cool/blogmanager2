@@ -65,24 +65,6 @@ let drawCom = {
         }
         article.appendChild(p);
     },
-    drawComment: function() {
-        let article = document.createElement('article');        
-
-        let commentData = this.createCommentData(article);
-        this.createName(commentData, document.getElementById("name").value);
-        this.createDate(commentData);
-        this.createReply(commentData);
-
-        article.appendChild(commentData);
-
-        this.createText(article, document.getElementById("comment").value);
-
-        drawCom.wrapper.appendChild(article);
-        
-        let commentTxt = document.getElementById("comment").value;
-        dataCom.sendData(article.childNodes[0].childNodes[0].innerHTML, 
-            article.childNodes[0].childNodes[1].innerHTML, commentTxt); 
-    },
     drawReply: function(referenceNode, name, comment, date, margin, array, whichOne) {
         let article = document.createElement('article');        
         
@@ -177,6 +159,9 @@ let drawCom = {
         }
     },
     splitComments(array) {
+        this.wrapper.innerHTML = "";
+        this.indexWrapper.innerHTML = "";
+
         let length = 0;
         array.forEach( elem => {
             if (elem[3] == "noReplyIndex") {
@@ -189,7 +174,7 @@ let drawCom = {
             if (length % this.siteLength > 0) {
                 numberOfPages++;
             }
-            this.currentSite = numberOfPages;
+            this.currentSite = numberOfPages - 1;
             this.drawComments(array, (numberOfPages - 1) * this.siteLength);
             this.drawIndexes(numberOfPages);
         } else {
@@ -398,7 +383,8 @@ function drawCommentEvent(e) {
  
     
     if (!dataCom.replyOn) {
-        drawCom.drawComment(); 
+        drawCom.splitComments(dataCom.array);
+        dataCom.sendData(name, dateString, comment);
     } else {
         let currentNode = dataCom.reReferenceNode();
         if (currentNode != dataCom.replyElem) {
