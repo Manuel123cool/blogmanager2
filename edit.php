@@ -56,6 +56,19 @@ function createTableHeader($index) {
     conn()->close();
 }
 
+function createTableDB($index) {
+    $sql = "CREATE TABLE IF NOT EXISTS db$index (
+        text VARCHAR(30)
+    )";
+
+    if (conn()->query($sql) === TRUE) {
+        //echo "Table MyGuests created successfully";
+    } else {
+        echo "Error creating table: " . conn()->error;
+    }
+    conn()->close();
+}
+
 function createTableArticle($index) {
     $sql = "CREATE TABLE IF NOT EXISTS article$index (
         id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
@@ -267,6 +280,8 @@ if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
     if (isset($_GET["reset"])) {
         resetDB();
     }
+    
+    if (isset($_GET["
     }
 }
 

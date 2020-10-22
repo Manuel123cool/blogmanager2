@@ -27,8 +27,8 @@ if ($conn->query($sql) === TRUE) {
 }
 $conn->close();
 
-function createTable($index1, $index2) {
-    $sql = "CREATE TABLE IF NOT EXISTS ${index1}comment$index2 (
+function createTable($index) {
+    $sql = "CREATE TABLE IF NOT EXISTS comment$index (
         id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(30),
         comment VARCHAR(1000),
@@ -58,7 +58,6 @@ function insertData($name, $comment, $date, $replyIndex, $siteIndex1, $siteIndex
 }
 
 function getData($siteIndex1, $siteIndex2) {
-    createTable($siteIndex1, $siteIndex2);
     $array = Array();
     $sql = "SELECT comment, name, date, replyIndex 
                 FROM ${siteIndex1}comment$siteIndex2";
@@ -99,3 +98,16 @@ if (isset($_GET["getData"], $_GET["siteIndex1"], $_GET["siteIndex2"])) {
     getData($_GET["siteIndex1"], $_GET["siteIndex2"]);    
 }
     
+if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
+    if ($_COOKIE["myname"] == "Manuel" &&
+            password_verify("Password", $_COOKIE["mypassword"])) {
+    if (isset($_GET["setTable"], $_GET["DB_id"])) {
+        if ($_GET["DB_id"] > 0) {
+            createTable($_GET["DB_id"]);
+            echo "Successfull created table";
+        } else {
+            echo "db id was empty";
+        }
+    }
+    }
+}

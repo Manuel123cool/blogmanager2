@@ -95,6 +95,15 @@ let draw = {
         }
 
     },
+    drawEditComButton() {
+        let editCom = document.createElement("button");
+        editCom.innerHTML =  "edit comments";    
+        editCom.setAttribute("class", "editComButton");
+        this.wrapper.appendChild(editCom);
+        
+        editCom.addEventListener("click", editComButtonEvent); 
+
+    },
     drawAll: function() {
         this.drawSaveButton();
         this.drawAddBlockEntry();
@@ -113,6 +122,7 @@ let draw = {
     },
     drawUponIndex: function(index) {
         this.drawBackButton();
+        this.drawEditComButton();
         this.drawAddArticle(); 
         if (data.headers[index]) {
             data.headers[index].forEach( elem => {
@@ -146,6 +156,7 @@ let draw = {
 let data = {
     currentBlogTarget: -1, 
     currentArticleTarget: -1, 
+    dbIds: Array(),
     headers: Array(), 
     articles: Array(),
     blogEntries: Array(),
@@ -302,8 +313,6 @@ function backButtonArticleEvent(e) {
     if (!data.articles[data.currentBlogTarget]) {
         data.articles[data.currentBlogTarget] = Array();
     }
-    let count = 0;
-    let index = 0;
     let articleElem = document.getElementById("article_textarea");
     data.articles[data.currentBlogTarget][data.currentArticleTarget] = 
         articleElem.value; 
@@ -340,4 +349,98 @@ function deleteButtonArticlesEvent(e) {
     e.target.parentNode.remove();
 }  
 
+function editComButtonEvent(e) {
+    let editButtons = document.querySelectorAll(".editButton");    
+    let editButtons1 = document.querySelectorAll(".editCom");    
+    if (editButtons.length > 0) {
+        editButtons.forEach( elem => {
+            let editCom = document.createElement("button");
+            editCom.innerHTML =  "edit comments";    
+            editCom.setAttribute("class", "editCom");
+            
+            editCom.addEventListener("click", editCommentsEvent); 
+            elem.parentNode.replaceChild(editCom, elem);
+        });
+    } else if (editButtons1.length > 0) {
+        editButtons1.forEach( elem => {
+            let editButton = document.createElement("button");
+            editButton.innerHTML =  "edit article";    
+            editButton.setAttribute("class", "editButton");
+
+            editButton.addEventListener("click", editArticleEvent);
+            elem.parentNode.replaceChild(editButton, elem);
+        });
+ 
+    }
+}
+
+function editCommentsEvent(e) {
+    if (!data.headers[data.currentBlogTarget]) { 
+        data.headers[data.currentBlogTarget] = Array();
+    }
+
+    let count = 0;
+    let index = 0;
+    let articlesElem = document.querySelectorAll('.edit_article');
+    articlesElem.forEach( (elem) => {
+        data.headers[data.currentBlogTarget][count] = elem.childNodes[1].value; 
+        if (e.target.parentNode === elem) {
+            index = count;
+        }
+        ++count;
+    });
+ 
+    data.currentArticleTarget = index;
+    draw.wrapper.innerHTML = "";
+
+    let backButton = document.createElement("button");
+    backButton.innerHTML =  "go back";    
+    backButton.setAttribute("class", "backButton");
+    draw.wrapper.appendChild(backButton);
+    
+    backButton.addEventListener("click", backButtonCommentEvent); 
+ 
+    let label = document.createElement("label");
+    label.setAttribute("for", "DBId");
+    label.innerHTML = "DB id:";
+    draw.wrapper.appendChild(label);  
+
+    let input = document.createElement("input");
+    input.setAttribute("type", "text");
+    input.setAttribute("id", "DBId");
+    input.setAttribute("name", "DBId");
+    if (data.dbIds[data.currentBlogTarget]) {
+            input.value = 
+                data.dbIds[data.currentBlogTarget][data.currentArticleTarget]; 
+        if (data.dbIds[data.currentBlogTarget][data.currentArticleTarget] == 
+                undefined) { 
+            input.value = ""; 
+        }
+    }
+ 
+    draw.wrapper.appendChild(input); 
+}
+
+function backButtonCommentEvent(e) {
+    if (!data.dbIds[data.currentBlogTarget]) {
+        data.dbIds[data.currentBlogTarget] = Array();
+    }
+    let dbElem = document.getElementById("DBId");
+    data.dbIds[data.currentBlogTarget][data.currentArticleTarget] = 
+        dbElem.value; 
+
+    let xmlhttp0 = new XMLHttpRequest();
+    xmlhttp0.addEventListener('readystatechange', (e) => {
+        if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+            let responseText = xmlhttp0.responseText;
+            console.log(responseText);
+        }
+    });
+    xmlhttp0.open('GET', "php/comment.php?setTable=true&DB_id=" + dbElem.value);
+    xmlhttp0.send(); 
+
+    draw.wrapper.innerHTML = "";
+    draw.drawUponIndex(data.currentBlogTarget);
+    editComButtonEvent();
+}
 document.addEventListener("DOMContentLoaded", drawEvent);
