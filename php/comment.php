@@ -45,9 +45,8 @@ function createTable($index) {
     conn()->close();
 }
 
-function insertData($name, $comment, $date, $replyIndex, $siteIndex1, $siteIndex2) {
-    createTable($siteIndex1, $siteIndex2);
-    $sql = "INSERT INTO ${siteIndex1}comment$siteIndex2
+function insertData($name, $comment, $date, $replyIndex, $dbIndex) {
+    $sql = "INSERT INTO comment$dbIndex
          (comment, name, date, replyIndex)
                  VALUES (?, ?, ?, ?)";
     $conn = conn();
@@ -57,10 +56,10 @@ function insertData($name, $comment, $date, $replyIndex, $siteIndex1, $siteIndex
     $stmt->execute();
 }
 
-function getData($siteIndex1, $siteIndex2) {
+function getData($dbIndex) {
     $array = Array();
     $sql = "SELECT comment, name, date, replyIndex 
-                FROM ${siteIndex1}comment$siteIndex2";
+                FROM comment$dbIndex";
     $result = conn()->query($sql);
 
     $returnEmpty = false;
@@ -85,24 +84,23 @@ function getData($siteIndex1, $siteIndex2) {
 }
 
 if (isset($_POST['name'], $_POST['comment'], $_POST['date'], 
-            $_POST['siteIndex1'], $_POST['siteIndex2'],
+            $_POST['dbIndex'],
                 $_POST["replyIndex"])) {
 
     insertdata($_POST['name'], $_POST['comment'], $_POST['date'], 
-            json_decode($_POST['replyIndex']), $_POST["siteIndex1"],
-                $_POST["siteIndex2"]);    
+            json_decode($_POST['replyIndex']), $_POST["dbIndex"]);    
     echo "data arrived";
 }
 
-if (isset($_GET["getData"], $_GET["siteIndex1"], $_GET["siteIndex2"])) {
-    getData($_GET["siteIndex1"], $_GET["siteIndex2"]);    
+if (isset($_GET["getData"], $_GET["dbIndex"])) {
+    getData($_GET["dbIndex"]);    
 }
     
 if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
     if ($_COOKIE["myname"] == "Manuel" &&
             password_verify("Password", $_COOKIE["mypassword"])) {
     if (isset($_GET["setTable"], $_GET["DB_id"])) {
-        if ($_GET["DB_id"] > 0) {
+        if ($_GET["DB_id"] >= 0) {
             createTable($_GET["DB_id"]);
             echo "Successfull created table";
         } else {

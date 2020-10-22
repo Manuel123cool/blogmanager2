@@ -184,22 +184,42 @@ let data = {
         xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xmlhttp.send("header=" + JSON.stringify(this.headers) + 
             "&article="  + JSON.stringify(this.articles) + 
-                "&blog_entries=" + JSON.stringify(this.blogEntries));
+                "&blog_entries=" + JSON.stringify(this.blogEntries) + 
+                    "&db_ids=" + JSON.stringify(this.dbIds));
     },
     getData: function() {
         let xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
-                //console.log(responseText);
+                console.log(responseText);
                 this.blogEntries = JSON.parse(responseText).blogEntries; 
                 this.headers = JSON.parse(responseText).headers; 
                 this.articles = JSON.parse(responseText).articles; 
+                this.dbIds = JSON.parse(responseText).DBids; 
                 draw.drawAll();
             }
         });
         xmlhttp0.open('GET', "edit.php?getData=true", true);
         xmlhttp0.send();  
+    },
+    setCommentTables() {
+        this.dbIds.forEach( elem => {
+            elem.forEach( elem1 => {
+                if (elem1 != "noIndex") {
+                    let xmlhttp0 = new XMLHttpRequest();
+                    xmlhttp0.addEventListener('readystatechange', (e) => {
+                        if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+                            let responseText = xmlhttp0.responseText;
+                            console.log(responseText);
+                        }
+                    });
+                    xmlhttp0.open('GET', "php/comment.php?setTable=true&DB_id=" + elem1);
+                    xmlhttp0.send(); 
+                }
+            });
+        });
+
     }
 }
 
@@ -251,6 +271,7 @@ function saveButtonEvent(e) {
     });
 
     data.blogEntries = blogEntryData;
+    data.setCommentTables();
 
     data.resetDB(); 
 }
@@ -428,16 +449,6 @@ function backButtonCommentEvent(e) {
     let dbElem = document.getElementById("DBId");
     data.dbIds[data.currentBlogTarget][data.currentArticleTarget] = 
         dbElem.value; 
-
-    let xmlhttp0 = new XMLHttpRequest();
-    xmlhttp0.addEventListener('readystatechange', (e) => {
-        if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
-            let responseText = xmlhttp0.responseText;
-            console.log(responseText);
-        }
-    });
-    xmlhttp0.open('GET', "php/comment.php?setTable=true&DB_id=" + dbElem.value);
-    xmlhttp0.send(); 
 
     draw.wrapper.innerHTML = "";
     draw.drawUponIndex(data.currentBlogTarget);

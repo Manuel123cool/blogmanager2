@@ -182,13 +182,14 @@ let drawCom = {
             this.drawComments(array);
         }
     },
-    draw: function(index1, index2) {
-        dataCom.siteIndex1 = index1;
-        dataCom.siteIndex2 = index2;
+    draw: function(index) {
+        dataCom.dbIndex = index;
         
-        dataCom.getData();
-        let submit = document.getElementById("submit");
-        submit.addEventListener("click", drawCommentEvent);
+        if (index != "noIndex") {
+            dataCom.getData();
+            let submit = document.getElementById("submit");
+            submit.addEventListener("click", drawCommentEvent);
+        }
     }
 }
 
@@ -229,14 +230,13 @@ let dataCom = {
     replyOn: false,
     replyIndex: Array(), 
     replyElem: null,
-    siteIndex1: -1,
-    siteIndex2: -1,
+    dbIndex: -1,
     sendData(name, date, text) {
         var xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 var responseText = xmlhttp0.responseText;
-                //console.log(responseText);
+                console.log(responseText);
             }
         });
         xmlhttp0.open('POST', "php/comment.php", true);
@@ -244,22 +244,21 @@ let dataCom = {
         let replyIndex = this.replyIndex;
         xmlhttp0.send("name=" + name + "&date=" + date + "&comment=" + text + 
             "&replyIndex=" + JSON.stringify(replyIndex) +
-                "&siteIndex1=" + this.siteIndex1 + "&siteIndex2=" + this.siteIndex2);
+                "&dbIndex=" + this.dbIndex);
     },
     getData() {
         let xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
-                //console.log(responseText);
+                console.log(responseText);
                 let result = JSON.parse(responseText);
                 this.array = JSON.parse(responseText);
                 this.replyIndex[0] = "noReplyIndex";
                 drawCom.splitComments(result);
             }
         });
-        xmlhttp0.open('GET', "php/comment.php?getData=true&siteIndex1=" + this.siteIndex1 +
-                        "&siteIndex2=" + this.siteIndex2, true);
+        xmlhttp0.open('GET', "php/comment.php?getData=true&dbIndex=" + this.dbIndex, true);
         xmlhttp0.send();  
     },
     compareArray(array1, array2) {

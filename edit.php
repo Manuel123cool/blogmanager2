@@ -168,6 +168,44 @@ function getArticle() {
     conn()->close();
 }
 
+function getDBids() {
+    //get length
+    $count = 0;
+    $exists = true;
+    while ($exists) {
+        $sql = "select 1 from db$count LIMIT 1";
+        $result = conn()->query($sql);
+
+        if($result !== FALSE)
+        {
+            $count++; 
+        } else {
+            $exists = false;
+        }
+    }
+    $array = Array();
+    for ($i = 0; $i < $count; $i++) {
+        $array[$i] = Array();
+        $sql = "SELECT text FROM db$i";
+        $result = conn()->query($sql);
+        if (!$result) {
+            trigger_error('Invalid query: ' . conn()->error);
+        }
+
+        if ($result->num_rows > 0) {
+            $count1 = 0;
+            while($row = $result->fetch_assoc()) {
+                $array[$i][$count1] = $row["text"]; 
+                $count1++;
+            }
+        } else {
+            //echo "0 results";
+        }
+    }
+    return $array;
+    conn()->close();
+}
+
 function getHeader() {
     //get length
     $count = 0;
@@ -236,16 +274,16 @@ if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
         $count = 0;
         foreach ($headers as $header) {
             createTableHeader($count); 
-        $conn = conn();
-        $stmt = $conn->prepare("INSERT INTO header$count (text) VALUES (?)");
-        $stmt->bind_param("s", $text);
-        foreach ($header as $headerTxt) {
-            $text = $headerTxt;    
-            $stmt->execute();
-        } 
-        $stmt->close();
-        $conn->close();
-        $count++;
+            $conn = conn();
+            $stmt = $conn->prepare("INSERT INTO header$count (text) VALUES (?)");
+            $stmt->bind_param("s", $text);
+            foreach ($header as $headerTxt) {
+                $text = $headerTxt;    
+                $stmt->execute();
+            } 
+            $stmt->close();
+            $conn->close();
+            $count++;
         }
     }
 
@@ -281,7 +319,23 @@ if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
         resetDB();
     }
     
-    if (isset($_GET["
+    if (isset($_POST["db_ids"])) {
+        $dbIds = json_decode($_POST["db_ids"]);
+        $count = 0;
+        foreach ($dbIds as $id) {
+            createTableDB($count); 
+            $conn = conn();
+            $stmt = $conn->prepare("INSERT INTO db$count (text) VALUES (?)");
+            $stmt->bind_param("s", $text);
+            foreach ($id as $idText) {
+                $text = $idText;    
+                $stmt->execute();
+            } 
+            $stmt->close();
+            $conn->close();
+            $count++;
+        }
+    } 
     }
 }
 
@@ -290,7 +344,8 @@ if (isset($_GET["getData"])) {
     $array = [
         "blogEntries" => getBlogEntries(),
         "headers" => getHeader(),
-        "articles" => getArticle()
+        "articles" => getArticle(),
+        "DBids" => getDBids()
     ];
     echo json_encode($array);
 }

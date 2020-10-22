@@ -107,6 +107,7 @@ let data = {
     headers: Array(),
     articles: Array(),
     blogEntries: Array(),
+    dbIds: Array(),
     drawHeaderPage: function() {
         document.getElementById("from_wrapper").setAttribute("style", "display: none;");
         drawCom.wrapper.textContent = "";
@@ -115,9 +116,12 @@ let data = {
     },
     drawArticle: function(index1, index2) {
         draw.wrapper.textContent = "";
-        document.getElementById("from_wrapper").setAttribute("style", "display: block;");
+        if (this.dbIds[index1][index2] != "noIndex") {
+            document.getElementById("from_wrapper").
+                setAttribute("style", "display: block;");
+        }
         draw.wrapper.insertAdjacentHTML("beforeend", this.articles[index1][index2]);
-        drawCom.draw(index1, index2);
+        drawCom.draw(this.dbIds[index1][index2]);
     },
     getData: function() {
         let xmlhttp0 = new XMLHttpRequest();
@@ -128,6 +132,7 @@ let data = {
                 this.blogEntries = JSON.parse(responseText).blogEntries; 
                 this.headers = JSON.parse(responseText).headers; 
                 this.articles = JSON.parse(responseText).articles; 
+                this.dbIds = JSON.parse(responseText).DBids; 
                 urlPar.checkPar();
             }
         });
