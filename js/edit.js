@@ -95,14 +95,13 @@ let draw = {
         }
 
     },
-    drawEditComButton() {
+    drawEditDBidButton() {
         let editCom = document.createElement("button");
-        editCom.innerHTML =  "edit comments";    
-        editCom.setAttribute("class", "editComButton");
+        editCom.innerHTML =  "edit DB id";    
+        editCom.setAttribute("class", "editDBIdsButton");
         this.wrapper.appendChild(editCom);
         
-        editCom.addEventListener("click", editComButtonEvent); 
-
+        editCom.addEventListener("click", editDBidButtonEvent); 
     },
     drawAll: function() {
         this.drawSaveButton();
@@ -122,7 +121,7 @@ let draw = {
     },
     drawUponIndex: function(index) {
         this.drawBackButton();
-        this.drawEditComButton();
+        this.drawEditDBidButton();
         this.drawAddArticle(); 
         if (data.headers[index]) {
             data.headers[index].forEach( elem => {
@@ -370,16 +369,16 @@ function deleteButtonArticlesEvent(e) {
     e.target.parentNode.remove();
 }  
 
-function editComButtonEvent(e) {
+function editDBidButtonEvent(e) {
     let editButtons = document.querySelectorAll(".editButton");    
     let editButtons1 = document.querySelectorAll(".editCom");    
     if (editButtons.length > 0) {
         editButtons.forEach( elem => {
             let editCom = document.createElement("button");
-            editCom.innerHTML =  "edit comments";    
+            editCom.innerHTML =  "edit id";    
             editCom.setAttribute("class", "editCom");
             
-            editCom.addEventListener("click", editCommentsEvent); 
+            editCom.addEventListener("click", editDBidEvent); 
             elem.parentNode.replaceChild(editCom, elem);
         });
     } else if (editButtons1.length > 0) {
@@ -395,7 +394,7 @@ function editComButtonEvent(e) {
     }
 }
 
-function editCommentsEvent(e) {
+function editDBidEvent(e) {
     if (!data.headers[data.currentBlogTarget]) { 
         data.headers[data.currentBlogTarget] = Array();
     }
@@ -419,7 +418,7 @@ function editCommentsEvent(e) {
     backButton.setAttribute("class", "backButton");
     draw.wrapper.appendChild(backButton);
     
-    backButton.addEventListener("click", backButtonCommentEvent); 
+    backButton.addEventListener("click", backButtonDBidEvent); 
  
     let label = document.createElement("label");
     label.setAttribute("for", "DBId");
@@ -442,7 +441,7 @@ function editCommentsEvent(e) {
     draw.wrapper.appendChild(input); 
 }
 
-function backButtonCommentEvent(e) {
+function backButtonDBidEvent(e) {
     if (!data.dbIds[data.currentBlogTarget]) {
         data.dbIds[data.currentBlogTarget] = Array();
     }
@@ -452,6 +451,7 @@ function backButtonCommentEvent(e) {
 
     draw.wrapper.innerHTML = "";
     draw.drawUponIndex(data.currentBlogTarget);
-    editComButtonEvent();
+    editDBiDBiddButtonEvent();
 }
+
 document.addEventListener("DOMContentLoaded", drawEvent);

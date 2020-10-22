@@ -37,6 +37,16 @@ let drawCom = {
 
         reply.addEventListener("click", replyEvent);
     },
+    createDelete(commentData) {
+        if (dataCom.admin) {
+            let deleteButton = document.createElement("button");
+            deleteButton.setAttribute("class", "delete_button");
+            deleteButton.innerHTML = "delete";
+            commentData.appendChild(deleteButton);
+
+            deleteButton.addEventListener("click", deleteEvent);
+        }
+    },
     createText(article, commentTxt) {
         let p = document.createElement("span");
         p.setAttribute("class", "text_span");
@@ -75,6 +85,7 @@ let drawCom = {
         this.createName(commentData, name);
         this.createDate(commentData, date);
         this.createReply(commentData);
+        this.createDelete(commentData);
 
         article.appendChild(commentData);
 
@@ -126,6 +137,7 @@ let drawCom = {
             this.createName(commentData, elem[1]);
             this.createDate(commentData, elem[2]);
             this.createReply(commentData);
+            this.createDelete(commentData);
 
             let drawOnce = true;
             array.forEach( (elem1) => {
@@ -231,6 +243,7 @@ let dataCom = {
     replyIndex: Array(), 
     replyElem: null,
     dbIndex: -1,
+    admin: false,
     sendData(name, date, text) {
         var xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
@@ -255,11 +268,27 @@ let dataCom = {
                 let result = JSON.parse(responseText);
                 this.array = JSON.parse(responseText);
                 this.replyIndex[0] = "noReplyIndex";
-                drawCom.splitComments(result);
+        
+                this.checkAdmin(result);
             }
         });
         xmlhttp0.open('GET', "php/comment.php?getData=true&dbIndex=" + this.dbIndex, true);
         xmlhttp0.send();  
+    },
+    checkAdmin(result) {
+        let xmlhttp0 = new XMLHttpRequest();
+        xmlhttp0.addEventListener('readystatechange', (e) => {
+            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+                let responseText = xmlhttp0.responseText;
+                if (responseText == "true") {
+                    this.admin = true;
+                }
+                drawCom.splitComments(result, responseText);
+            }
+        });
+        xmlhttp0.open('GET', "php/comment.php?checkAdmin=true");
+        xmlhttp0.send();  
+        
     },
     compareArray(array1, array2) {
         let until = array1.length;
@@ -355,6 +384,56 @@ let dataCom = {
             }
         }
         return elemArray[elemArray.length - 1];
+    },
+    deleteReplies(currentTarget, myDelete) {
+        let untilMarginSmaller = true;
+        let node = currentTarget.parentNode.parentNode;
+        let startNum = node.style.marginLeft.substring(0, 
+           node.style.marginLeft.length - 2);
+
+        let wasDel = false;
+        while (untilMarginSmaller && myDelete) {
+            if (node.nextSibling) {
+                if (!wasDel) {
+                    node = node.nextSibling;
+                }
+                let firstNum = node.style.marginLeft.substring(0, 
+                   node.style.marginLeft.length - 2);
+                if (Number(firstNum) > Number(startNum)) {
+                    wasDel = true;
+                    let tmpNode = node;
+                if (node.nextSibling) {
+                    node = node.nextSibling;
+                }
+                tmpNode.remove();
+            } else {
+                untilMarginSmaller = false;
+            }
+            } else {
+                let firstNum = node.style.marginLeft.substring(0, 
+                   node.style.marginLeft.length - 2);
+                if (Number(firstNum) > Number(startNum)) {
+                    node.remove(); 
+                }
+                untilMarginSmaller = false;
+            }
+        }
+    },
+    checkIfDelReply(currentTarget) {
+        let currentNode = currentTarget.parentNode.parentNode;
+        let myDelete = false;
+        if (currentNode.nextSibling) {
+            let firstNum = currentNode.style.marginLeft.substring(0, 
+                   currentNode.style.marginLeft.length - 2);
+     
+            let secondNum = currentNode.nextSibling.style.marginLeft.substring(0,  
+                   currentNode.nextSibling.style.marginLeft.length - 2);
+            
+            if (firstNum < secondNum) {
+                myDelete = true;
+            }
+        }
+        return myDelete;
     }
 }
 
@@ -445,18 +524,7 @@ function showReplyEvent(e) {
     dataCom.findCurrentPos(array, e.currentTarget);
 
     let currentNode = e.currentTarget.parentNode.parentNode;
-    let myDelete = false;
-    if (currentNode.nextSibling) {
-        let firstNum = currentNode.style.marginLeft.substring(0, 
-               currentNode.style.marginLeft.length - 2);
- 
-        let secondNum = currentNode.nextSibling.style.marginLeft.substring(0,  
-               currentNode.nextSibling.style.marginLeft.length - 2);
-        
-        if (firstNum < secondNum) {
-            myDelete = true;
-        }
-    }
+    let myDelete = dataCom.checkIfDelReply(e.currentTarget);
 
     //get index
     let count = 0;
@@ -479,36 +547,26 @@ function showReplyEvent(e) {
         } 
     });
 
-    let untilMarginSmaller = true;
-    let node = e.currentTarget.parentNode.parentNode;
-    let startNum = node.style.marginLeft.substring(0, 
-       node.style.marginLeft.length - 2);
+    dataCom.deleteReplies(e.currentTarget, myDelete);
+}
 
-    let wasDel = false;
-    while (untilMarginSmaller && myDelete) {
-        if (node.nextSibling) {
-            if (!wasDel) {
-                node = node.nextSibling;
-            }
-            let firstNum = node.style.marginLeft.substring(0, 
-               node.style.marginLeft.length - 2);
-            if (Number(firstNum) > Number(startNum)) {
-                wasDel = true;
-                let tmpNode = node;
-                if (node.nextSibling) {
-                    node = node.nextSibling;
-                }
-                tmpNode.remove();
-            } else {
-                untilMarginSmaller = false;
-            }
-        } else {
-            let firstNum = node.style.marginLeft.substring(0, 
-               node.style.marginLeft.length - 2);
-            if (Number(firstNum) > Number(startNum)) {
-                node.remove(); 
-            }
-            untilMarginSmaller = false;
+function deleteEvent(e) {
+    let array = Array();
+    dataCom.findCurrentPos(array, e.currentTarget);
+
+    let myDelete = dataCom.checkIfDelReply(e.currentTarget);
+
+    dataCom.deleteReplies(e.currentTarget, myDelete);
+    e.currentTarget.parentNode.parentNode.remove();
+
+    let xmlhttp0 = new XMLHttpRequest();
+    xmlhttp0.addEventListener('readystatechange', (e) => {
+        if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+            let responseText = xmlhttp0.responseText;
+            console.log(responseText);
         }
-    }
+    });
+    xmlhttp0.open('GET', "php/comment.php?deleteCom=true&DB_id=" + dataCom.dbIndex + 
+        "&pos=" + JSON.stringify(array));
+    xmlhttp0.send();  
 }
