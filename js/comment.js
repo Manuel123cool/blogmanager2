@@ -564,36 +564,11 @@ function deleteEvent(e) {
         if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
             let responseText = xmlhttp0.responseText;
             console.log(responseText);
+            document.location.reload(); 
         }
     });
-    xmlhttp0.open('GET', "php/comment.php?deleteCom=true&DB_id=" + dataCom.dbIndex + 
-        "&pos=" + JSON.stringify(array));
+    xmlhttp0.open('GET', "php/comment.php?deleteCom=true&DB_id=" + 
+         dataCom.dbIndex + 
+            "&pos=" + JSON.stringify(array));
     xmlhttp0.send();  
-
-    let length = dataCom.array.length;
-    for (let i = 0; i < length; ++i) {
-        let staysTrue = true;
-        for (let j = 0; j < array.length; j++) {
-            if (dataCom.array[i][3][j] != array[j]) {
-                staysTrue = false;
-            }
-        }
-        if (staysTrue) {
-            dataCom.array.splice(i, 1);
-        }
-    }
-
-    let arrayOfNoReply = Array();
-    let count = 0;
-    dataCom.array.forEach( elem => {
-       if (elem[3][0] == "noReplyIndex") {
-           arrayOfNoReply[count] = $elem;
-           count++;  
-       }
-    });
-
-    if (array.length == 1) {
-        arrayOfNoReply[array[0]].remove(); 
-    }
-
 }

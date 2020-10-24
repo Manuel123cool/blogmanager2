@@ -109,11 +109,17 @@ function deleteCom($dbid, $pos) {
     }    
     $arrayOfDelId = Array();
     
-    print_r($pos);
     for ($i = 0; $i < count($array); $i++) {
         $staysTrue = true;
-        for ($j = 0; $j < count($pos); $j++) {
-            if ($array[$i][0][$j] != $pos[$j]) {
+        print_r($array[$i][0]);
+        if ($array[$i][0][0] === "noReplyIndex") {
+            continue;
+        }
+        if (count($array[$i][0]) < count($pos) - 1) {
+            continue;
+        }
+        for ($j = 0; $j < count($pos) - 1; $j++) {
+            if ($array[$i][0][$j] !== $pos[$j]) {
                 $staysTrue = false; 
             } 
         } 
@@ -125,7 +131,7 @@ function deleteCom($dbid, $pos) {
     $arrayOfNoReply = Array();
     $count = 0;
     foreach ($array as $value) {
-        if ($value[0][0] == "noReplyIndex") {
+        if ($value[0][0] === "noReplyIndex") {
             $arrayOfNoReply[$count] = $value;
             $count++;  
         }
