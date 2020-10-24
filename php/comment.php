@@ -56,6 +56,60 @@ function insertData($name, $comment, $date, $replyIndex, $dbIndex) {
     $stmt->execute();
 }
 
+function getIpAddress() {
+    //whether ip is from share internet
+    if (!empty($_SERVER['HTTP_CLIENT_IP']))   
+    {
+        $ip_address = $_SERVER['HTTP_CLIENT_IP'];
+    }
+    //whether ip is from proxy
+    elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))  
+    {
+        $ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    }
+    //whether ip is from remote address
+    else
+    {
+        $ip_address = $_SERVER['REMOTE_ADDR'];
+    }
+    return $ip_address;    
+}
+
+function checkIfIpIsSpaming($ipAddress, $dbIndex) {
+    $array = getTmpData($dbIndex); 
+    foreach ( $array as $value) {
+        if ($value[4] == $ipAddress) {
+            $startTime = $value[5]; 
+            $nowTime = time();
+            $timeElapsed = $nowTime - $startTime;
+            $timeElapsed /= 60; 
+            if ($timeElapsed < 2) {
+                return true;
+            }
+        }
+    }
+    unset($value);
+    return false;
+}
+
+function insertTmpData($name, $comment, $date, $replyIndex, $dbIndex) {
+    if (checkIfIpIsSpaming(getIpAddress(), $dbIndex)) {
+        echo "isSpamming";
+        exit();
+    }
+    $sql = "INSERT INTO tmp_comment$dbIndex
+         (comment, name, date, replyIndex, ipAddress, time)
+                 VALUES (?, ?, ?, ?, ?, ?)";
+    $conn = conn();
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssss", $comment, $name, $date, $serializedData,
+        $ipAddress, $time);
+    $serializedData = serialize($replyIndex);
+    $ipAddress = getIpAddress();
+    $time = time();
+    $stmt->execute();
+}
+
 function getData($dbIndex) {
     $array = Array();
     $sql = "SELECT comment, name, date, replyIndex 
@@ -83,14 +137,32 @@ function getData($dbIndex) {
     }
 }
 
-if (isset($_POST['name'], $_POST['comment'], $_POST['date'], 
-            $_POST['dbIndex'],
-                $_POST["replyIndex"])) {
+function getTmpData($dbIndex) {
+    $array = Array();
+    $sql = "SELECT comment, name, date, replyIndex, ipAddress, time
+                FROM tmp_comment$dbIndex";
+    $result = conn()->query($sql);
 
-    insertdata($_POST['name'], $_POST['comment'], $_POST['date'], 
-            json_decode($_POST['replyIndex']), $_POST["dbIndex"]);    
-    echo "data arrived";
+    $returnEmpty = false;
+    if ($result->num_rows > 0) {
+        $count = 0;
+        while($row = $result->fetch_assoc()) {
+            $array[$count] = Array();
+            $array[$count][0] = $row["comment"]; 
+            $array[$count][1] = $row["name"]; 
+            $array[$count][2] = $row["date"]; 
+            $array[$count][3] = unserialize($row["replyIndex"]); 
+            $array[$count][4] = $row["ipAddress"]; 
+            $array[$count][5] = $row["time"]; 
+            $count++;
+        }
+    } else {
+        return $array;
+    }
+    return $array;
 }
+
+
 
 function deleteCom($dbid, $pos) {
     $array = Array();
@@ -163,6 +235,7 @@ if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
     if (isset($_GET["setTable"], $_GET["DB_id"])) {
         if ($_GET["DB_id"] >= 0) {
             createTable($_GET["DB_id"]);
+            createTmpTable($_GET["DB_id"]);
             echo "Successfull created table";
         } else {
             echo "db id was empty";
@@ -176,6 +249,14 @@ if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
     if (isset($_GET["deleteCom"], $_GET["DB_id"], $_GET["pos"])) {
         deleteCom($_GET["DB_id"], json_decode($_GET["pos"])); 
     }
+    if (isset($_POST['name'], $_POST['comment'], $_POST['date'], 
+                    $_POST['dbIndex'],
+                    $_POST["replyIndex"])) {
+        insertData($_POST['name'], $_POST['comment'], $_POST['date'], 
+                json_decode($_POST['replyIndex']), $_POST["dbIndex"]);
+        echo "data arrived";
+        exit();
+    }
     }
 }
 
@@ -183,3 +264,32 @@ if (isset($_GET["checkAdmin"])) {
     echo "false";
     exit();
 }
+
+function createTmpTable($index) {
+     $sql = "CREATE TABLE IF NOT EXISTS tmp_comment$index (
+        id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(30),
+        comment VARCHAR(1000),
+        date VARCHAR(30),
+        replyIndex VARCHAR(1000),
+        ipAddress VARCHAR(50),
+        time VARCHAR(1000)
+    )";
+
+    if (conn()->query($sql) === TRUE) {
+        //echo "Table MyGuests created successfully";
+    } else {
+      echo "Error creating table: " . conn()->error;
+    }
+
+    conn()->close();
+}   
+
+if (isset($_POST['name'], $_POST['comment'], $_POST['date'], 
+            $_POST['dbIndex'],
+                $_POST["replyIndex"])) {
+    insertTmpData($_POST['name'], $_POST['comment'], $_POST['date'], 
+            json_decode($_POST['replyIndex']), $_POST["dbIndex"]);
+    echo "data arrived";
+}
+

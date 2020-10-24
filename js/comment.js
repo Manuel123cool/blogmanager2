@@ -6,6 +6,7 @@ let drawCom = {
     currentSite: null,
     wrapper: document.getElementById("comment_wrapper"),
     indexWrapper: document.getElementById("index_wrapper"),
+    counterStartTime: null,
     createCommentData(article) {
         let comment_data = document.createElement("div");
         comment_data.setAttribute("class", "comment_data");
@@ -75,7 +76,19 @@ let drawCom = {
         }
         article.appendChild(p);
     },
-    drawReply: function(referenceNode, name, comment, date, margin, array, whichOne) {
+    createCounter(commentData) {
+        if (!dataCom.admin) {
+            let counter = document.createElement("span");
+            counter.innerHTML = 0;
+            counter.setAttribute("class", "counter_span");
+            commentData.appendChild(counter);
+            let date = new Date();
+            this.counterStartTime = date;
+            window.requestAnimationFrame(countEvent); 
+        }
+    },
+    drawReply: function(referenceNode, name, comment, date, margin, array, 
+            whichOne) {
         let article = document.createElement('article');        
         
         article.setAttribute("style", "margin-left: " + 
@@ -85,6 +98,7 @@ let drawCom = {
         this.createName(commentData, name);
         this.createDate(commentData, date);
         this.createReply(commentData);
+        this.createCounter(commentData);
         this.createDelete(commentData);
 
         article.appendChild(commentData);
@@ -137,6 +151,7 @@ let drawCom = {
             this.createName(commentData, elem[1]);
             this.createDate(commentData, elem[2]);
             this.createReply(commentData);
+            this.createCounter(commentData);
             this.createDelete(commentData);
 
             let drawOnce = true;
@@ -205,6 +220,16 @@ let drawCom = {
     }
 }
 
+function countEvent(timestamp) {
+    let counterElements = document.querySelectorAll(".counter_span");
+    counterElements.forEach( elem => {
+        let date = new Date();
+        elem.innerHTML =  date.getMinutes() - drawCom.counterStartTime.
+                getMinutes(); 
+    });
+    window.requestAnimationFrame(countEvent);     
+}
+
 function indexLinkEvent(e) {
     e.preventDefault();
     let index = Number(e.currentTarget.innerHTML - 1);
@@ -249,6 +274,9 @@ let dataCom = {
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 var responseText = xmlhttp0.responseText;
+                if (responseText == "isSpamming") {
+                    window.alert("You only can comment every 2 minutes");
+                }
                 console.log(responseText);
             }
         });
