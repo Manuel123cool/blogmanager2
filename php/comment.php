@@ -98,16 +98,38 @@ function insertTmpData($name, $comment, $date, $replyIndex, $dbIndex) {
         exit();
     }
     $sql = "INSERT INTO tmp_comment$dbIndex
-         (comment, name, date, replyIndex, ipAddress, time)
-                 VALUES (?, ?, ?, ?, ?, ?)";
+         (comment, name, date, replyIndex, ipAddress, time, randomKey)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)";
     $conn = conn();
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssss", $comment, $name, $date, $serializedData,
-        $ipAddress, $time);
+    $stmt->bind_param("sssssss", $comment, $name, $date, $serializedData,
+        $ipAddress, $time, $randomKey);
     $serializedData = serialize($replyIndex);
     $ipAddress = getIpAddress();
     $time = time();
+    $randomKey = uniqid("", true);
     $stmt->execute();
+
+    session_start();
+    $_SESSION["randomKey"] = $randomKey;
+}
+
+function delTmpCom($dbIndex) {
+    $array = getTmpData($dbIndex); 
+    foreach ($array as $value) {
+        if ($value[4] == getIpAddress() && $value[6] == 
+                $_SESSION["randomKey"]) {
+            $sql = "DELETE FROM tmp_comment WHERE id=$value[7]";
+
+            if ($conn->query($sql) === TRUE) {
+              echo "Record deleted successfully";
+            } else {
+              echo "Error deleting record: " . $conn->error;
+            }    
+            session_unset();
+            session_destroy();
+        }
+    }
 }
 
 function getData($dbIndex) {
@@ -139,8 +161,8 @@ function getData($dbIndex) {
 
 function getTmpData($dbIndex) {
     $array = Array();
-    $sql = "SELECT comment, name, date, replyIndex, ipAddress, time
-                FROM tmp_comment$dbIndex";
+    $sql = "SELECT comment, name, date, replyIndex, ipAddress, time, randomKey,
+            id FROM tmp_comment$dbIndex";
     $result = conn()->query($sql);
 
     $returnEmpty = false;
@@ -154,6 +176,8 @@ function getTmpData($dbIndex) {
             $array[$count][3] = unserialize($row["replyIndex"]); 
             $array[$count][4] = $row["ipAddress"]; 
             $array[$count][5] = $row["time"]; 
+            $array[$count][6] = $row["randomKey"];
+            $array[$count][7] = $row["id"];
             $count++;
         }
     } else {
@@ -273,7 +297,8 @@ function createTmpTable($index) {
         date VARCHAR(30),
         replyIndex VARCHAR(1000),
         ipAddress VARCHAR(50),
-        time VARCHAR(1000)
+        time VARCHAR(1000),
+        randomKey VARCHAR(50)
     )";
 
     if (conn()->query($sql) === TRUE) {
@@ -293,3 +318,10 @@ if (isset($_POST['name'], $_POST['comment'], $_POST['date'],
     echo "data arrived";
 }
 
+if (isset($_GET["deleteTmpCom"], $_GET["DB_id"])) {
+    delTmpCom($_GET["DB_id"]); 
+}
+
+if (isset($_GET["getTmpCom"), $_GET["dbIndex"]) {
+    echo json_encode(getTmpData($_GET["dbIndex"]));    
+}

@@ -6,6 +6,7 @@ let drawCom = {
     currentSite: null,
     wrapper: document.getElementById("comment_wrapper"),
     indexWrapper: document.getElementById("index_wrapper"),
+    tmp_wrapper: document.getElementById("tmp_comment_wrapper");
     counterStartTime: null,
     createCommentData(article) {
         let comment_data = document.createElement("div");
@@ -22,7 +23,8 @@ let drawCom = {
     createDate(commentData, dateTxt = "default") {
         let date = document.createElement("span");
         let dateObj = new Date();
-        let dateString = dateObj.toDateString(); 
+        let dateString = dateObj.toDateString() + " at " +
+               dateObj.getHours() + ":" + dateObj.getMinutes(); 
         if (dateTxt != "default") {
             dateString = dateTxt;
         }
@@ -174,6 +176,21 @@ let drawCom = {
             drawCom.wrapper.appendChild(article);
             count++;
         });
+    },
+    drawTmpCom() {
+        let article = document.createElement('article');        
+        
+        let commentData = this.createCommentData(article);
+        this.createName(commentData);
+        this.createDate(commentData);
+        this.createReply(commentData);
+
+        article.appendChild(commentData);
+
+        this.createText(article, comment);
+
+        this.tmp_wrapper.appendChild(article); 
+        
     },
     drawIndexes(numberOfPages) {
         for (let i = 0; i < numberOfPages; ++i) {
@@ -471,7 +488,9 @@ function drawCommentEvent(e) {
     let name = document.getElementById("name").value;
 
     let dateObj = new Date();
-    let dateString = dateObj.toDateString(); 
+    let dateString = dateObj.toDateString() + " at " +
+               dateObj.getHours() + ":" + dateObj.getMinutes(); 
+; 
  
     let array = Array(); 
     array[0] = comment;
