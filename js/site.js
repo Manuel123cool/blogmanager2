@@ -109,9 +109,11 @@ let data = {
     blogEntries: Array(),
     dbIds: Array(),
     drawHeaderPage: function() {
-        document.getElementById("from_wrapper").setAttribute("style", "display: none;");
+        document.getElementById("from_wrapper").
+            setAttribute("style", "display: none;");
         drawCom.wrapper.textContent = "";
         drawCom.indexWrapper.textContent = "";
+        drawCom.tmp_wrapper.textContent = "";
         draw.drawIndexPage();
     },
     drawArticle: function(index1, index2) {
@@ -120,7 +122,8 @@ let data = {
             document.getElementById("from_wrapper").
                 setAttribute("style", "display: block;");
         }
-        draw.wrapper.insertAdjacentHTML("beforeend", this.articles[index1][index2]);
+        draw.wrapper.
+            insertAdjacentHTML("beforeend", this.articles[index1][index2]);
         drawCom.draw(this.dbIds[index1][index2]);
     },
     getData: function() {

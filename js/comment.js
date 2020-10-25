@@ -6,8 +6,9 @@ let drawCom = {
     currentSite: null,
     wrapper: document.getElementById("comment_wrapper"),
     indexWrapper: document.getElementById("index_wrapper"),
-    tmp_wrapper: document.getElementById("tmp_comment_wrapper");
+    tmp_wrapper: document.getElementById("tmp_comment_wrapper"),
     counterStartTime: null,
+    counterOnce: false,
     createCommentData(article) {
         let comment_data = document.createElement("div");
         comment_data.setAttribute("class", "comment_data");
@@ -40,14 +41,17 @@ let drawCom = {
 
         reply.addEventListener("click", replyEvent);
     },
-    createDelete(commentData) {
-        if (dataCom.admin) {
+    createDelete(commentData, deleteTmp = false) {
+        if (dataCom.admin || deleteTmp) {
             let deleteButton = document.createElement("button");
             deleteButton.setAttribute("class", "delete_button");
             deleteButton.innerHTML = "delete";
             commentData.appendChild(deleteButton);
-
-            deleteButton.addEventListener("click", deleteEvent);
+            if (!deleteTmp) {
+                deleteButton.addEventListener("click", deleteEvent);
+            } else {
+                deleteButton.addEventListener("click", deleteTmpEvent);
+            }
         }
     },
     createText(article, commentTxt) {
@@ -78,16 +82,17 @@ let drawCom = {
         }
         article.appendChild(p);
     },
-    createCounter(commentData) {
-        if (!dataCom.admin) {
-            let counter = document.createElement("span");
-            counter.innerHTML = 0;
-            counter.setAttribute("class", "counter_span");
-            commentData.appendChild(counter);
-            let date = new Date();
+    createCounter(time = false) {
+        let counter = document.createElement("span");
+        counter.setAttribute("class", "counter_span");
+        this.tmp_wrapper.prepend(counter);
+        let date = new Date();
+        if (time != false) {
+            this.counterStartTime = new Date(date.getTime() - time*60000);
+        } else {
             this.counterStartTime = date;
-            window.requestAnimationFrame(countEvent); 
         }
+        window.requestAnimationFrame(countEvent); 
     },
     drawReply: function(referenceNode, name, comment, date, margin, array, 
             whichOne) {
@@ -100,7 +105,6 @@ let drawCom = {
         this.createName(commentData, name);
         this.createDate(commentData, date);
         this.createReply(commentData);
-        this.createCounter(commentData);
         this.createDelete(commentData);
 
         article.appendChild(commentData);
@@ -130,7 +134,8 @@ let drawCom = {
         this.createText(article, comment);
 
         function insertAfter(newNode, referenceNode) {
-            referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+            referenceNode.parentNode.insertBefore(newNode, 
+                referenceNode.nextSibling);
         }
         insertAfter(article, referenceNode);
     },
@@ -153,7 +158,6 @@ let drawCom = {
             this.createName(commentData, elem[1]);
             this.createDate(commentData, elem[2]);
             this.createReply(commentData);
-            this.createCounter(commentData);
             this.createDelete(commentData);
 
             let drawOnce = true;
@@ -177,19 +181,21 @@ let drawCom = {
             count++;
         });
     },
-    drawTmpCom() {
+    drawTmpCom(name, date, comment, time) {
         let article = document.createElement('article');        
         
         let commentData = this.createCommentData(article);
-        this.createName(commentData);
-        this.createDate(commentData);
+        this.createName(commentData, name);
+        this.createDate(commentData, date);
         this.createReply(commentData);
+        this.createCounter(time);
+        this.createDelete(commentData, true);
 
         article.appendChild(commentData);
 
         this.createText(article, comment);
-
-        this.tmp_wrapper.appendChild(article); 
+    
+        this.tmp_wrapper.appendChild(article);
         
     },
     drawIndexes(numberOfPages) {
@@ -231,6 +237,7 @@ let drawCom = {
         
         if (index != "noIndex") {
             dataCom.getData();
+            dataCom.getTmpData();
             let submit = document.getElementById("submit");
             submit.addEventListener("click", drawCommentEvent);
         }
@@ -239,12 +246,33 @@ let drawCom = {
 
 function countEvent(timestamp) {
     let counterElements = document.querySelectorAll(".counter_span");
+    let date = new Date();
     counterElements.forEach( elem => {
-        let date = new Date();
-        elem.innerHTML =  date.getMinutes() - drawCom.counterStartTime.
-                getMinutes(); 
+        elem.innerHTML =  (date.getMinutes() - drawCom.counterStartTime.
+                getMinutes()) + " minutes, when 2 minutes then the comment"
+                    + " will be posted"; 
     });
-    window.requestAnimationFrame(countEvent);     
+
+    if (date.getMinutes() - drawCom.counterStartTime.getMinutes() >= 2 &&
+            !drawCom.counterOnce) {
+        drawCom.counterOnce = true;
+        let xmlhttp0 = new XMLHttpRequest();
+        xmlhttp0.addEventListener('readystatechange', (e) => {
+            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+                let responseText = xmlhttp0.responseText;
+                console.log(responseText);
+                if (responseText === "Successfull posted") {
+                    drawCom.tmp_wrapper.textContent = "";
+                    document.location.reload(); 
+                }
+            }
+        });
+        xmlhttp0.open('GET', "php/comment.php?checkPosting=true&" +
+            "dbIndex=" + dataCom.dbIndex, true);
+        xmlhttp0.send();  
+    } else if (drawCom.tmp_wrapper.childNodes[0]) {
+        window.requestAnimationFrame(countEvent);     
+    }
 }
 
 function indexLinkEvent(e) {
@@ -286,13 +314,18 @@ let dataCom = {
     replyElem: null,
     dbIndex: -1,
     admin: false,
+    tmp_array: Array(),
     sendData(name, date, text) {
         var xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 var responseText = xmlhttp0.responseText;
-                if (responseText == "isSpamming") {
-                    window.alert("You only can comment every 2 minutes");
+                if (!this.admin) {
+                    if (responseText == "isSpamming") {
+                        window.alert("You only can comment every 2 minutes");
+                    } else {
+                        drawCom.drawTmpCom(name, date, text, false);
+                    }
                 }
                 console.log(responseText);
             }
@@ -318,6 +351,23 @@ let dataCom = {
             }
         });
         xmlhttp0.open('GET', "php/comment.php?getData=true&dbIndex=" + this.dbIndex, true);
+        xmlhttp0.send();  
+    },
+    getTmpData() {
+        let xmlhttp0 = new XMLHttpRequest();
+        xmlhttp0.addEventListener('readystatechange', (e) => {
+            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+                let responseText = xmlhttp0.responseText;
+                console.log(responseText);
+                this.tmp_array = JSON.parse(responseText);
+                if (this.tmp_array.length > 0) {
+                    drawCom.drawTmpCom(this.tmp_array[1], this.tmp_array[2],
+                        this.tmp_array[0], this.tmp_array[3]);
+                }
+            }
+        });
+        xmlhttp0.open('GET', "php/comment.php?getTmpCom=true&dbIndex=" + 
+            this.dbIndex, true);
         xmlhttp0.send();  
     },
     checkAdmin(result) {
@@ -490,55 +540,58 @@ function drawCommentEvent(e) {
     let dateObj = new Date();
     let dateString = dateObj.toDateString() + " at " +
                dateObj.getHours() + ":" + dateObj.getMinutes(); 
-; 
- 
-    let array = Array(); 
-    array[0] = comment;
-    array[1] = name;
-    array[2] = dateString;
-    array[3] = Array();
-    
-    let count6 = 0;
-    dataCom.replyIndex.forEach( elem => {
-        array[3][count6] = elem;
-        count6++;
-    });
-    dataCom.array.push(array);
 
- 
-    
-    if (!dataCom.replyOn) {
-        drawCom.splitComments(dataCom.array);
-        dataCom.sendData(name, dateString, comment);
-    } else {
-        let currentNode = dataCom.reReferenceNode();
-        if (currentNode != dataCom.replyElem) {
-            drawCom.drawReply(currentNode, name, 
-                    comment, dateString, dataCom.replyIndex.length, 
+    if (dataCom.admin) {
+        let array = Array(); 
+        array[0] = comment;
+        array[1] = name;
+        array[2] = dateString;
+        array[3] = Array();
+
+        let count6 = 0;
+        dataCom.replyIndex.forEach( elem => {
+            array[3][count6] = elem;
+            count6++;
+        });
+        dataCom.array.push(array);
+
+     
+        
+        if (!dataCom.replyOn) {
+            drawCom.splitComments(dataCom.array);
+            dataCom.sendData(name, dateString, comment);
+        } else {
+            let currentNode = dataCom.reReferenceNode();
+            if (currentNode != dataCom.replyElem) {
+                drawCom.drawReply(currentNode, name, 
+                        comment, dateString, dataCom.replyIndex.length, 
                         dataCom.replyIndex, 10000);
-        }
-
-        let watchDouble = false;
-        let checkShowReply = false;
-        let count4 = 0;
-        dataCom.array.forEach( elem => {
-            if (dataCom.compareArray(elem[3], dataCom.replyIndex)) {
-                if (count4 == 1) {
-                    watchDouble = true;
-                }
-                checkShowReply = true;
-                count4++; 
             }
-        }); 
 
-        if (checkShowReply && !watchDouble) {
-            let showReply = document.createElement("button");
-            showReply.setAttribute("class", "show_reply");
-            showReply.innerHTML = "show reply";
-            dataCom.replyElem.childNodes[0].appendChild(showReply);
-            showReply.addEventListener("click", showReplyEvent)
+            let watchDouble = false;
+            let checkShowReply = false;
+            let count4 = 0;
+            dataCom.array.forEach( elem => {
+                if (dataCom.compareArray(elem[3], dataCom.replyIndex)) {
+                    if (count4 == 1) {
+                        watchDouble = true;
+                    }
+                    checkShowReply = true;
+                    count4++; 
+                }
+            }); 
+
+            if (checkShowReply && !watchDouble) {
+                let showReply = document.createElement("button");
+                showReply.setAttribute("class", "show_reply");
+                showReply.innerHTML = "show reply";
+                dataCom.replyElem.childNodes[0].appendChild(showReply);
+                showReply.addEventListener("click", showReplyEvent)
+            }
+
+            dataCom.sendData(name, dateString, comment);
         }
-
+    } else {
         dataCom.sendData(name, dateString, comment);
     }
 } 
@@ -617,5 +670,19 @@ function deleteEvent(e) {
     xmlhttp0.open('GET', "php/comment.php?deleteCom=true&DB_id=" + 
          dataCom.dbIndex + 
             "&pos=" + JSON.stringify(array));
+    xmlhttp0.send();  
+}
+
+function deleteTmpEvent(e) {
+    let xmlhttp0 = new XMLHttpRequest();
+    xmlhttp0.addEventListener('readystatechange', (e) => {
+        if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+            let responseText = xmlhttp0.responseText;
+            console.log(responseText);
+            drawCom.tmp_wrapper.textContent = "";
+        }
+    });
+    xmlhttp0.open('GET', "php/comment.php?deleteTmpCom=true&DB_id=" + 
+         dataCom.dbIndex);
     xmlhttp0.send();  
 }

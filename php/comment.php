@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -83,7 +85,7 @@ function checkIfIpIsSpaming($ipAddress, $dbIndex) {
             $nowTime = time();
             $timeElapsed = $nowTime - $startTime;
             $timeElapsed /= 60; 
-            if ($timeElapsed < 2) {
+            if ($timeElapsed < 1) {
                 return true;
             }
         }
@@ -110,7 +112,6 @@ function insertTmpData($name, $comment, $date, $replyIndex, $dbIndex) {
     $randomKey = uniqid("", true);
     $stmt->execute();
 
-    session_start();
     $_SESSION["randomKey"] = $randomKey;
 }
 
@@ -119,17 +120,18 @@ function delTmpCom($dbIndex) {
     foreach ($array as $value) {
         if ($value[4] == getIpAddress() && $value[6] == 
                 $_SESSION["randomKey"]) {
-            $sql = "DELETE FROM tmp_comment WHERE id=$value[7]";
+            $sql = "DELETE FROM tmp_comment$dbIndex WHERE id=$value[7]";
 
-            if ($conn->query($sql) === TRUE) {
+            if (conn()->query($sql) === TRUE) {
               echo "Record deleted successfully";
             } else {
-              echo "Error deleting record: " . $conn->error;
+              echo "Error deleting record: " . conn()->error;
             }    
-            session_unset();
-            session_destroy();
         }
     }
+
+    session_unset();
+    session_destroy();
 }
 
 function getData($dbIndex) {
@@ -159,6 +161,35 @@ function getData($dbIndex) {
     }
 }
 
+function getTmpDataForClient($dbIndex) {
+    $array = Array();
+    $sql = "SELECT comment, name, date, replyIndex, ipAddress, time, randomKey,
+            id FROM tmp_comment$dbIndex";
+    $result = conn()->query($sql);
+
+    if ($result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            if ($row["ipAddress"] == getIpAddress() && $row["randomKey"] ==
+                    $_SESSION["randomKey"]) {
+                $array = Array();
+                $array[0] = $row["comment"]; 
+                $array[1] = $row["name"]; 
+                $array[2] = $row["date"]; 
+
+                $startTime = $row["time"]; 
+                $nowTime = time();
+                $timeElapsed = $nowTime - $startTime;
+                $timeElapsed /= 60; 
+                $array[3] = round($timeElapsed); 
+                break;
+            }
+        }
+    } else {
+        return $array;
+    }
+    return $array;
+}
+
 function getTmpData($dbIndex) {
     $array = Array();
     $sql = "SELECT comment, name, date, replyIndex, ipAddress, time, randomKey,
@@ -185,8 +216,6 @@ function getTmpData($dbIndex) {
     }
     return $array;
 }
-
-
 
 function deleteCom($dbid, $pos) {
     $array = Array();
@@ -310,6 +339,10 @@ function createTmpTable($index) {
     conn()->close();
 }   
 
+function checkPosting($dbIndex) {
+    
+}
+
 if (isset($_POST['name'], $_POST['comment'], $_POST['date'], 
             $_POST['dbIndex'],
                 $_POST["replyIndex"])) {
@@ -322,6 +355,34 @@ if (isset($_GET["deleteTmpCom"], $_GET["DB_id"])) {
     delTmpCom($_GET["DB_id"]); 
 }
 
-if (isset($_GET["getTmpCom"), $_GET["dbIndex"]) {
-    echo json_encode(getTmpData($_GET["dbIndex"]));    
+if (isset($_GET["getTmpCom"], $_GET["dbIndex"])) {
+    echo json_encode(getTmpDataForClient($_GET["dbIndex"]));    
+}
+
+if (isset($_GET["checkPosting"], $_GET["dbIndex"])) {
+    $dbIndex = $_GET["dbIndex"];
+    $array = getTmpData($dbIndex); 
+    foreach ($array as $value) {
+        $startTime = $value[5]; 
+        $nowTime = time();
+        $timeElapsed = $nowTime - $startTime;
+        $timeElapsed /= 60; 
+        if (round($timeElapsed) >= 1) {
+            insertData($value[1], $value[0], $value[2], 
+                $value[3], $_GET["dbIndex"]);
+
+            $sql = "DELETE FROM tmp_comment$dbIndex WHERE id=$value[7]";
+
+            if (conn()->query($sql) === TRUE) {
+                //echo "Record deleted successfully";
+            } else {
+              echo "Error deleting record: " . conn()->error;
+            }    
+
+            if ($value[4] == getIpAddress()) {
+                echo "Successfull posted";
+            } 
+        }
+    }
+    unset($value);
 }

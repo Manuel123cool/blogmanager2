@@ -33,3 +33,33 @@
 #comment_wrapper .read_more_button {
     display: block;
 }
+
+#tmp_comment_wrapper article {
+    padding-left: 10px;
+    border-left-style: solid;
+    border-color: grey;
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#tmp_comment_wrapper span {
+    overflow-wrap: break-word;
+}
+
+#tmp_comment_wrapper .name_span {
+    margin-right: 5px;
+    display: inline;
+}
+
+#tmp_comment_wrapper .text_span {
+    font-size: 13px;
+}
+
+#tmp_comment_wrapper .date_span {
+    margin-right: 5px;
+}
+
+#tmp_comment_wrapper .read_more_button {
+    display: block;
+}

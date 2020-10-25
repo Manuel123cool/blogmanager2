@@ -451,7 +451,7 @@ function backButtonDBidEvent(e) {
 
     draw.wrapper.innerHTML = "";
     draw.drawUponIndex(data.currentBlogTarget);
-    editDBiDBiddButtonEvent();
+    editDBidButtonEvent();
 }
 
 document.addEventListener("DOMContentLoaded", drawEvent);
