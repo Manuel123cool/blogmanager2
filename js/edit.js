@@ -10,13 +10,17 @@ let draw = {
 
         saveButton.addEventListener("click", saveButtonEvent);
     },
-    drawBackButton: function() {
+    drawBackButton: function(backup = false) {
         let backButton = document.createElement("button");
         backButton.innerHTML =  "go back";    
         backButton.setAttribute("class", "backButton");
         this.wrapper.appendChild(backButton);
         
-        backButton.addEventListener("click", backButtonEvent); 
+        if (!backup) {
+            backButton.addEventListener("click", backButtonEvent); 
+        } else {
+            backButton.addEventListener("click", backFromBackupEvent); 
+        }
     },
     drawAddBlockEntry: function(insertAfter = false, referenceNode) {
         let smallAddButton = document.createElement("button");
@@ -103,8 +107,17 @@ let draw = {
         
         editCom.addEventListener("click", editDBidButtonEvent); 
     },
+    drawBackupButton() {
+        let backup = document.createElement("button");
+        backup.innerHTML =  "backup";    
+        backup.setAttribute("class", "backupButton");
+        this.wrapper.appendChild(backup);
+        
+        backup.addEventListener("click", backupButtonEvent);
+    },
     drawAll: function() {
         this.drawSaveButton();
+        this.drawBackupButton();
         this.drawAddBlockEntry();
 
         let count = 0;
@@ -454,4 +467,67 @@ function backButtonDBidEvent(e) {
     editDBidButtonEvent();
 }
 
+function backupButtonEvent(e) {
+    e.preventDefault();
+    draw.wrapper.textContent = "";
+    draw.drawBackButton(true);
+   
+    let getBackup = document.createElement("button");
+    getBackup.innerHTML =  "get backup";    
+    getBackup.setAttribute("class", "getBackupButton");
+    draw.wrapper.appendChild(getBackup);
+
+    getBackup.addEventListener("click", getBackupEvent);
+
+    let setBackup = document.createElement("button");
+    setBackup.innerHTML =  "set backup";    
+    setBackup.setAttribute("class", "setBackupButton");
+    draw.wrapper.appendChild(setBackup);
+
+    let textArea = document.createElement("textarea");
+    textArea.value = "";
+    textArea.setAttribute("id", "backup_textarea");
+
+    draw.wrapper.appendChild(textArea); 
+ 
+}
+
+function backFromBackupEvent(e) {
+    e.preventDefault();
+    draw.wrapper.textContent = "";
+    draw.drawAll();
+}
+
+function getBackupEvent(e) {
+        let xmlhttp0 = new XMLHttpRequest();
+        xmlhttp0.addEventListener('readystatechange', (e) => {
+            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+                let responseText = xmlhttp0.responseText;
+                console.log(responseText);
+                let allData = new Object();
+                allData.site = new Object();
+                allData.site.blogEntries = JSON.parse(responseText).blogEntries; 
+                allData.site.headers = JSON.parse(responseText).headers; 
+                allData.site.articles = JSON.parse(responseText).articles; 
+                allData.site.dbIds = JSON.parse(responseText).DBids; 
+                console.log(allData);
+            }
+        });
+        xmlhttp0.open('GET', "edit.php?getData=true", true);
+        xmlhttp0.send();  
+}
+
+function getAllComments(allData) {
+        
+    let xmlhttp0 = new XMLHttpRequest();
+    xmlhttp0.addEventListener('readystatechange', (e) => {
+        if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+            let responseText = xmlhttp0.responseText;
+            console.log(responseText);
+        }
+    });
+    xmlhttp0.open('GET', "edit.php?getData=true", true);
+    xmlhttp0.send();  
+ 
+}
 document.addEventListener("DOMContentLoaded", drawEvent);

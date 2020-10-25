@@ -279,6 +279,10 @@ function deleteCom($dbid, $pos) {
 }
 
 if (isset($_GET["getData"], $_GET["dbIndex"])) {
+    if (!is_numeric($_GET["dbIndex"])) {
+        echo "Error: not numeric number";
+        exit();
+    }
     getData($_GET["dbIndex"]);    
 }
     
@@ -303,8 +307,8 @@ if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
         deleteCom($_GET["DB_id"], json_decode($_GET["pos"])); 
     }
     if (isset($_POST['name'], $_POST['comment'], $_POST['date'], 
-                    $_POST['dbIndex'],
-                    $_POST["replyIndex"])) {
+                    $_POST['dbIndex'], $_POST["replyIndex"])) {
+
         insertData($_POST['name'], $_POST['comment'], $_POST['date'], 
                 json_decode($_POST['replyIndex']), $_POST["dbIndex"]);
         echo "data arrived";
@@ -339,27 +343,42 @@ function createTmpTable($index) {
     conn()->close();
 }   
 
-function checkPosting($dbIndex) {
-    
-}
-
 if (isset($_POST['name'], $_POST['comment'], $_POST['date'], 
             $_POST['dbIndex'],
                 $_POST["replyIndex"])) {
+
+    if (!is_numeric($_POST["dbIndex"])) {
+        echo "Error: not numeric number";
+        exit();
+    }
     insertTmpData($_POST['name'], $_POST['comment'], $_POST['date'], 
             json_decode($_POST['replyIndex']), $_POST["dbIndex"]);
     echo "data arrived";
 }
 
 if (isset($_GET["deleteTmpCom"], $_GET["DB_id"])) {
+    if (!is_numeric($_GET["DB_id"])) {
+        echo "Error: not numeric number";
+        exit();
+    }
+ 
     delTmpCom($_GET["DB_id"]); 
 }
 
 if (isset($_GET["getTmpCom"], $_GET["dbIndex"])) {
+    if (!is_numeric($_GET["dbIndex"])) {
+        echo "Error: not numeric number";
+        exit();
+    }
     echo json_encode(getTmpDataForClient($_GET["dbIndex"]));    
 }
 
 if (isset($_GET["checkPosting"], $_GET["dbIndex"])) {
+    if (!is_numeric($_GET["dbIndex"])) {
+        echo "Error: not numeric number";
+        exit();
+    }
+
     $dbIndex = $_GET["dbIndex"];
     $array = getTmpData($dbIndex); 
     foreach ($array as $value) {

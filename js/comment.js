@@ -187,7 +187,6 @@ let drawCom = {
         let commentData = this.createCommentData(article);
         this.createName(commentData, name);
         this.createDate(commentData, date);
-        this.createReply(commentData);
         this.createCounter(time);
         this.createDelete(commentData, true);
 
@@ -321,7 +320,7 @@ let dataCom = {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 var responseText = xmlhttp0.responseText;
                 if (!this.admin) {
-                    if (responseText == "isSpamming") {
+                    if (responseText == "isSpamming") { 
                         window.alert("You only can comment every 2 minutes");
                     } else {
                         drawCom.drawTmpCom(name, date, text, false);
@@ -331,7 +330,8 @@ let dataCom = {
             }
         });
         xmlhttp0.open('POST', "php/comment.php", true);
-        xmlhttp0.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xmlhttp0.setRequestHeader("Content-type", 
+            "application/x-www-form-urlencoded");
         let replyIndex = this.replyIndex;
         xmlhttp0.send("name=" + name + "&date=" + date + "&comment=" + text + 
             "&replyIndex=" + JSON.stringify(replyIndex) +
@@ -443,7 +443,8 @@ let dataCom = {
                 count3 += 1;
             }
         });
-        arrayForPush.push((count3 - 1) + (drawCom.currentSite * drawCom.siteLength));
+        arrayForPush.push((count3 - 1) + (drawCom.currentSite * 
+            drawCom.siteLength));
         arrayForPush.reverse(); 
         console.log(arrayForPush);
     },
@@ -592,7 +593,11 @@ function drawCommentEvent(e) {
             dataCom.sendData(name, dateString, comment);
         }
     } else {
-        dataCom.sendData(name, dateString, comment);
+        if (!drawCom.tmp_wrapper.childNodes[0]) {
+            dataCom.sendData(name, dateString, comment);
+        } else {
+            window.alert("You only can comment every 2 minutes");
+        }
     }
 } 
 
