@@ -152,12 +152,12 @@ function getData($dbIndex) {
             $count++;
         }
     } else {
-        echo json_encode($array);
+        return $array;
         $returnEmpty = true;
     }
 
     if (!$returnEmpty) {
-        echo json_encode($array);
+        return $array;
     }
 }
 
@@ -283,26 +283,68 @@ if (isset($_GET["getData"], $_GET["dbIndex"])) {
         echo "Error: not numeric number";
         exit();
     }
-    getData($_GET["dbIndex"]);    
+    echo json_encode(getData($_GET["dbIndex"]));    
 }
-    
+
+if (isset($_GET["getData_index"], $_GET["dbIndex"], $_GET["index"])) {
+    if (!is_numeric($_GET["dbIndex"])) {
+        echo "Error: not numeric number";
+        exit();
+    }
+    $comment = getData($_GET["dbIndex"]);
+    for ($i = 0; $i < count($comment); $i++) {
+        array_push($comment[$i], $_GET["dbIndex"]);
+    }
+    $array = [
+        "id" => $_GET["dbIndex"],
+        "com" => $comment,
+        "count" => $_GET["index"]
+    ];
+    echo json_encode($array);
+}
+
 if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
     if ($_COOKIE["myname"] == "Manuel" &&
             password_verify("Password", $_COOKIE["mypassword"])) {
-    if (isset($_GET["setTable"], $_GET["DB_id"])) {
-        if ($_GET["DB_id"] >= 0) {
-            createTable($_GET["DB_id"]);
-            createTmpTable($_GET["DB_id"]);
-            echo "Successfull created table";
-        } else {
-            echo "db id was empty";
+    if (isset($_GET["setTable"], $_GET["DB_ids"])) {
+        $array = json_decode($_GET["DB_ids"]);
+        if (count($array) == 0) {
+            echo "DB ids are zero";
+            exit();
         }
+        foreach ($array as $value) {
+            foreach ($value as $value1) {
+                if ($value1 != "noIndex") {
+                    createTable($value1);
+                    createTmpTable($value1);
+                }
+            }
+            unset($value1);
+        }
+        unset($value);
     }
     if (isset($_GET["checkAdmin"])) {
         echo "true";
         exit();
     }
-
+    if (isset($_GET["deleteAll"])) {
+         $dbhost = 'localhost';
+         $dbuser = 'root';
+         $dbpass = '';
+         $conn = mysqli_connect($dbhost, $dbuser, $dbpass);
+         
+         if(!$conn){
+            echo 'Connected failure<br>';
+         }
+         $sql = "DROP DATABASE comments";
+         
+         if (mysqli_query($conn, $sql)) {
+            echo "Database deleted successfully";
+         } else {
+            echo "Error deleting record: " . mysqli_error($conn);
+         }
+         mysqli_close($conn);
+    }
     if (isset($_GET["deleteCom"], $_GET["DB_id"], $_GET["pos"])) {
         deleteCom($_GET["DB_id"], json_decode($_GET["pos"])); 
     }

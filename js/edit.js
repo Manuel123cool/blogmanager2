@@ -215,23 +215,20 @@ let data = {
         xmlhttp0.open('GET', "edit.php?getData=true", true);
         xmlhttp0.send();  
     },
-    setCommentTables() {
-        this.dbIds.forEach( elem => {
-            elem.forEach( elem1 => {
-                if (elem1 != "noIndex") {
-                    let xmlhttp0 = new XMLHttpRequest();
-                    xmlhttp0.addEventListener('readystatechange', (e) => {
-                        if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
-                            let responseText = xmlhttp0.responseText;
-                            console.log(responseText);
-                        }
-                    });
-                    xmlhttp0.open('GET', "php/comment.php?setTable=true&DB_id=" + elem1);
-                    xmlhttp0.send(); 
+    setCommentTables(backup = false, allData) {
+        let xmlhttp0 = new XMLHttpRequest();
+        xmlhttp0.addEventListener('readystatechange', (e) => {
+            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+                let responseText = xmlhttp0.responseText;
+                console.log(responseText);
+                if (backup) {
+                    insertBackupCom(allData);
                 }
-            });
+            }
         });
-
+        xmlhttp0.open('GET', "php/comment.php?setTable=true&DB_ids=" 
+            + JSON.stringify(this.dbIds), true);
+        xmlhttp0.send(); 
     }
 }
 
@@ -484,6 +481,8 @@ function backupButtonEvent(e) {
     setBackup.setAttribute("class", "setBackupButton");
     draw.wrapper.appendChild(setBackup);
 
+    setBackup.addEventListener("click", setBackupEvent);
+
     let textArea = document.createElement("textarea");
     textArea.value = "";
     textArea.setAttribute("id", "backup_textarea");
@@ -503,14 +502,13 @@ function getBackupEvent(e) {
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
-                console.log(responseText);
                 let allData = new Object();
                 allData.site = new Object();
                 allData.site.blogEntries = JSON.parse(responseText).blogEntries; 
                 allData.site.headers = JSON.parse(responseText).headers; 
                 allData.site.articles = JSON.parse(responseText).articles; 
                 allData.site.dbIds = JSON.parse(responseText).DBids; 
-                console.log(allData);
+                getAllComments(allData); 
             }
         });
         xmlhttp0.open('GET', "edit.php?getData=true", true);
@@ -518,16 +516,77 @@ function getBackupEvent(e) {
 }
 
 function getAllComments(allData) {
-        
-    let xmlhttp0 = new XMLHttpRequest();
+    allData.comment = Array();
+    let count = 0;
+    allData.site.dbIds.forEach( elem => {
+        elem.forEach( elem1 => {
+            let xmlhttp0 = new XMLHttpRequest(); 
+            xmlhttp0.addEventListener('readystatechange', (e) => {
+                if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+                    let responseText = xmlhttp0.responseText;
+                    console.log(responseText);
+                    let result = JSON.parse(responseText);
+                    allData.comment[result.count] = result.com;
+                    let textArea = document.
+                        getElementById("backup_textarea");
+                    textArea.value = JSON.stringify(allData);
+                }
+            });
+            xmlhttp0.open('GET', "php/comment.php?getData_index=true" +
+                "&dbIndex=" + elem1 + "&index=" + count, true);
+            xmlhttp0.send();  
+            count++;
+        });
+    }); 
+}
+document.addEventListener("DOMContentLoaded", drawEvent);
+
+function setBackupEvent(e) {
+    let textArea = document.
+        getElementById("backup_textarea");
+    let allData = JSON.parse(textArea.value);
+ 
+    data.blogEntries = allData.site.blogEntries; 
+    data.headers = allData.site.headers; 
+    data.articles = allData.site.articles; 
+    data.dbIds = allData.site.dbIds; 
+
+    let xmlhttp0 = new XMLHttpRequest(); 
     xmlhttp0.addEventListener('readystatechange', (e) => {
         if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
             let responseText = xmlhttp0.responseText;
             console.log(responseText);
+            data.setCommentTables(true, allData);
         }
     });
-    xmlhttp0.open('GET', "edit.php?getData=true", true);
+    xmlhttp0.open('GET', "php/comment.php?deleteAll=true", true);
     xmlhttp0.send();  
- 
+} 
+
+function insertBackupCom(allData) {
+    let count = 0;
+    let count1 = 0;
+    console.log(allData.comment);
+    allData.comment.forEach( elem => {
+        elem.forEach( elem1 => {
+            let replyIndex = elem1[3];
+            let name = elem1[1];
+            let date = elem1[2];
+            let text = elem1[0];
+            let dbIndex = elem1[4];
+            var xmlhttp0 = new XMLHttpRequest();
+            xmlhttp0.addEventListener('readystatechange', (e) => {
+                if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+                    var responseText = xmlhttp0.responseText;
+                    console.log(responseText);
+                }
+            });
+            xmlhttp0.open('POST', "php/comment.php", true);
+            xmlhttp0.setRequestHeader("Content-type", 
+                "application/x-www-form-urlencoded");
+            xmlhttp0.send("name=" + name + "&date=" + date + "&comment=" + text + 
+                "&replyIndex=" + JSON.stringify(replyIndex) +
+                    "&dbIndex=" + dbIndex);
+        });
+    }); 
 }
-document.addEventListener("DOMContentLoaded", drawEvent);
