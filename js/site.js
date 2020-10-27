@@ -115,9 +115,12 @@ let data = {
         drawCom.indexWrapper.textContent = "";
         drawCom.tmp_wrapper.textContent = "";
         draw.drawIndexPage();
+        drawSearch.createSearchField();
     },
     drawArticle: function(index1, index2) {
         draw.wrapper.textContent = "";
+        document.getElementById("search_result_wrapper").textContent = "";
+        document.getElementById("search_wrapper").textContent = "";
         if (this.dbIds[index1][index2] != "noIndex") {
             document.getElementById("from_wrapper").
                 setAttribute("style", "display: block;");

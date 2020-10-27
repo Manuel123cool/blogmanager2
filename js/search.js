@@ -19,7 +19,9 @@ let drawSearch = {
     },
     drawUponData() {
         this.result_wrapper.textContent = "";
+        let once = false;
         dataSearch.headerInOrder.forEach( elem => {
+            once = true;
             let headerElem = document.createElement("h4");
             let linkHeader = document.createElement("a");
             linkHeader.innerHTML = data.headers[elem[0]][elem[1]];
@@ -28,13 +30,13 @@ let drawSearch = {
             headerElem.appendChild(linkHeader); 
             this.result_wrapper.appendChild(headerElem);
             
-            linkHeader.addEventListener("click", preventDefault);
-            headerElem.addEventListener("click", getTextEvent);
+            linkHeader.addEventListener("click", preventDefaultFromSearch);
+            headerElem.addEventListener("click", getTextFromSearchEvent);
         });
-        let hr = document.createElement("hr");
-        this.result_wrapper.appendChild(hr);
-        dataSearch.result = [];
-        dataSearch.headerInOrder = [];
+        if (once) {
+            let hr = document.createElement("hr");
+            this.result_wrapper.appendChild(hr);
+         }
     }
 }
 
@@ -43,7 +45,7 @@ let dataSearch = {
     headerInOrder: Array(),
     search(string, searchFor) {
         if (searchFor == "") {
-            return -1;
+            return 0;
         }
         let reg = new RegExp(searchFor, "ig");
         let regNotG = new RegExp(searchFor, "i");
@@ -51,10 +53,21 @@ let dataSearch = {
         let count = 0;
         while (result) {
             count++; 
-            string.replace(regNotG, "");
+            string = string.replace(regNotG, "");
             result = reg.test(string);
         }
         return count;
+    },
+    searchWords(string, searchFor) {
+        if (searchFor == "") {
+            return -1;
+        }
+        let words = searchFor.split(" ");
+        let result = 0;
+        words.forEach( word => {
+            result += this.search(string, word);
+        });
+        return result;
     },
     findSamePos(index1, index2) {
         let count = 0;
@@ -75,8 +88,8 @@ let dataSearch = {
         data.headers.forEach( elem => {
             let count1 = 0;
             elem.forEach( elem1 => {
-                let result = this.search(elem1, searchFor);     
-                if (result != -1) {
+                let result = this.searchWords(elem1, searchFor);     
+                if (result != -1 && result != 0) {
                     let resultArray = Array();
                     resultArray[0] = result * 50; 
                     resultArray[1] = count;
@@ -92,8 +105,8 @@ let dataSearch = {
         data.articles.forEach( elem => {
             let count1 = 0;
             elem.forEach( elem1 => {
-                let result = this.search(elem1, searchFor);     
-                if (result != -1) {
+                let result = this.searchWords(elem1, searchFor);     
+                if (result != -1 && result != 0) {
                     let length = this.findSamePos(count, count1);
                     if (length == this.result.length) {
                         let resultArray = Array();
@@ -109,7 +122,6 @@ let dataSearch = {
             });
             count++;
         });
-        console.log(this.result);
         this.orderResult();
     },
     orderResult() {
@@ -143,11 +155,34 @@ let dataSearch = {
 }
 
 function inputChangeEvent(e) {
+    dataSearch.result = [];
+    dataSearch.headerInOrder = [];
+
     let search = document.getElementById("search_field").value;
     dataSearch.checkData(search);
 }
 
-function loeadEvent(e) {
-    drawSearch.createSearchField();
+function getTextFromSearchEvent(e) {
+    let countElem = true;
+    let index = 0;
+    let count = 0;
+    while (countElem) {
+        if (!drawSearch.result_wrapper.childNodes[count]) {
+            break;
+        } else if (drawSearch.result_wrapper.childNodes[count].tagName == "H4") {
+            index++;
+        }
+        if (drawSearch.result_wrapper.childNodes[count] == e.currentTarget) {
+            break;
+        }
+        count++;
+    } 
+    console.log(index);
+    let index1 = dataSearch.headerInOrder[index - 1][0];     
+    let index2 = dataSearch.headerInOrder[index - 1][1];     
+    urlPar.insertParam(index1, index2, true); 
 }
-document.addEventListener("DOMContentLoaded", loeadEvent);
+
+function preventDefaultFromSearch(e) {
+    e.preventDefault();
+}
