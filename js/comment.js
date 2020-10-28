@@ -25,7 +25,7 @@ let drawCom = {
         let date = document.createElement("span");
         let dateObj = new Date();
         let dateString = dateObj.toDateString() + " at " +
-               dateObj.getHours() + ":" + dateObj.getMinutes(); 
+               dateObj.toTimeString(); 
         if (dateTxt != "default") {
             dateString = dateTxt;
         }
@@ -540,7 +540,7 @@ function drawCommentEvent(e) {
 
     let dateObj = new Date();
     let dateString = dateObj.toDateString() + " at " +
-               dateObj.getHours() + ":" + dateObj.getMinutes(); 
+               dateObj.toTimeString(); 
 
     if (dataCom.admin) {
         let array = Array(); 

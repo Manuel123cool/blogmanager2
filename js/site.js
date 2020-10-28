@@ -135,10 +135,13 @@ let data = {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
                 //console.log(responseText);
+                console.log("get data");
                 this.blogEntries = JSON.parse(responseText).blogEntries; 
                 this.headers = JSON.parse(responseText).headers; 
                 this.articles = JSON.parse(responseText).articles; 
                 this.dbIds = JSON.parse(responseText).DBids; 
+                my_localStorage.setData(this.blogEntries, this.headers,
+                    this.dbIds, this.articles);
                 urlPar.checkPar();
             }
         });
@@ -148,7 +151,16 @@ let data = {
 }
 
 function init(e) {
-    data.getData();
+    if (my_localStorage.timeOver()) {
+        data.getData();
+    } else {
+        let obj = my_localStorage.reData();
+        data.blogEntries = obj.blogEntries; 
+        data.headers = obj.headers; 
+        data.articles = obj.articles; 
+        data.dbIds = obj.dbIds; 
+        urlPar.checkPar();
+    }
 }
 
 function getTextEvent(e) {
