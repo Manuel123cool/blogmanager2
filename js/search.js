@@ -43,6 +43,34 @@ let drawSearch = {
 let dataSearch = {
     result: Array(),
     headerInOrder: Array(),
+    searches: Array(),
+    getData() {
+        let xmlhttp0 = new XMLHttpRequest();
+        xmlhttp0.addEventListener('readystatechange', (e) => {
+            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+                let responseText = xmlhttp0.responseText;
+                console.log(responseText);
+                this.searches = JSON.parse(responseText);
+            }
+        });
+        xmlhttp0.open('GET', "php/search.php?getData=true", true);
+        xmlhttp0.send();  
+ 
+    },
+    sendData(search, index1, index2) {
+        let xmlhttp0 = new XMLHttpRequest();
+        xmlhttp0.addEventListener('readystatechange', (e) => {
+            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+                let responseText = xmlhttp0.responseText;
+                console.log(responseText);
+            }
+        });
+        xmlhttp0.open('POST', "php/search.php", true); 
+        xmlhttp0.setRequestHeader("Content-type", 
+            "application/x-www-form-urlencoded");
+        xmlhttp0.send("search=" + search + 
+            "&index1=" + index1 + "&index2=" + index2); 
+    },
     search(string, searchFor) {
         if (searchFor == "") {
             return 0;
@@ -83,6 +111,15 @@ let dataSearch = {
         }
         return this.result.length;
     },
+    reResult(searchFor, result, index1, index2) {
+        this.searches.forEach( elem => {
+            if (elem[0].toUpperCase() == searchFor.toUpperCase() &&
+                    elem[1] == index1 && elem[2] == index2) {
+                result += 10 * elem[3];
+            } 
+        });
+        return result;
+    },
     checkData(searchFor) {
         let count = 0;
         data.headers.forEach( elem => {
@@ -91,9 +128,11 @@ let dataSearch = {
                 let result = this.searchWords(elem1, searchFor);     
                 if (result != -1 && result != 0) {
                     let resultArray = Array();
-                    resultArray[0] = result * 50; 
+                    resultArray[0] = this.reResult(searchFor, result * 50,
+                            count, count1);
                     resultArray[1] = count;
                     resultArray[2] = count1;
+                    resultArray[3] = searchFor;
                     this.result.push(resultArray);
                 }
                 count1++;
@@ -110,9 +149,11 @@ let dataSearch = {
                     let length = this.findSamePos(count, count1);
                     if (length == this.result.length) {
                         let resultArray = Array();
-                        resultArray[0] = result * 50; 
+                        resultArray[0] = this.reResult(searchFor, result * 10,
+                            count, count1);
                         resultArray[1] = count;
                         resultArray[2] = count1;
+                        resultArray[3] = searchFor;
                         this.result[length] = resultArray; 
                     } else {
                         this.result[length][0] += result * 10;
@@ -138,6 +179,7 @@ let dataSearch = {
                 let result = Array();
                 result[0] = this.result[largestElem][1];
                 result[1] = this.result[largestElem][2];
+                result[2] = this.result[largestElem][3];
                 this.headerInOrder.push(result); 
                 this.result.splice(largestElem, 1);
             } else {
@@ -145,6 +187,7 @@ let dataSearch = {
                     let result = Array();
                     result[0] = this.result[j][1];
                     result[1] = this.result[j][2];
+                    result[2] = this.result[j][3];
                     this.headerInOrder.push(result);
                 }
                 this.result.splice(0, this.result.length);
@@ -177,12 +220,20 @@ function getTextFromSearchEvent(e) {
         }
         count++;
     } 
-    console.log(index);
     let index1 = dataSearch.headerInOrder[index - 1][0];     
     let index2 = dataSearch.headerInOrder[index - 1][1];     
+    dataSearch.sendData(dataSearch.headerInOrder[index - 1][2], 
+        dataSearch.headerInOrder[index - 1][0],
+            dataSearch.headerInOrder[index - 1][1]);
     urlPar.insertParam(index1, index2, true); 
 }
 
 function preventDefaultFromSearch(e) {
     e.preventDefault();
 }
+
+function init(e) {
+    dataSearch.getData();
+}
+
+document.addEventListener("DOMContentLoaded", init);

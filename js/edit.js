@@ -173,7 +173,7 @@ let data = {
     articles: Array(),
     blogEntries: Array(),
     resetDB: function() {
-        var xmlhttp0 = new XMLHttpRequest();
+        let xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
@@ -183,6 +183,18 @@ let data = {
         });
         xmlhttp0.open('GET', "edit.php?reset=true", true);
         xmlhttp0.send();  
+    },
+    resetSearchDB() {
+        let xmlhttp0 = new XMLHttpRequest();
+        xmlhttp0.addEventListener('readystatechange', (e) => {
+            if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
+                let responseText = xmlhttp0.responseText;
+                console.log(responseText);
+            }
+        });
+        xmlhttp0.open('GET', "php/search.php?deleteData=true", true);
+        xmlhttp0.send();  
+        
     },
     sendData: function() {
         let xmlhttp = new XMLHttpRequest();
@@ -281,7 +293,7 @@ function saveButtonEvent(e) {
 
     data.blogEntries = blogEntryData;
     data.setCommentTables();
-
+    data.resetSearchDB();
     data.resetDB(); 
 }
 
