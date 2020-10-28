@@ -120,7 +120,7 @@ function checkIfIpIsSpaming() {
                 } else {
                     echo "Error deleting record: " . conn()->error;
                 }
-                $conn->close();
+                conn()->close();
             }
         }
     }
