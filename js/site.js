@@ -85,12 +85,14 @@ let draw = {
         this.wrapper.innerHTML = "";
         for (let i = 0; i < data.blogEntries.length; ++i) {
             let headerElem = document.createElement("h3");
-            headerElem.innerHTML = data.blogEntries[i];
+            headerElem.setAttribute("class", "big_header_elem");
             this.wrapper.appendChild(headerElem); 
+            headerElem.insertAdjacentHTML("beforeend", data.blogEntries[i]);
             for (let j = 0; j < data.headers[i].length; ++j) {
                 let headerElem = document.createElement("h4");
                 let linkHeader = document.createElement("a");
-                linkHeader.innerHTML = data.headers[i][j];
+                headerElem.setAttribute("class", "small_header_elem");
+                linkHeader.insertAdjacentHTML("beforeend", data.headers[i][j]);
                 linkHeader.setAttribute("href", "");
 
                 headerElem.appendChild(linkHeader); 
@@ -121,10 +123,6 @@ let data = {
         draw.wrapper.textContent = "";
         document.getElementById("search_result_wrapper").textContent = "";
         document.getElementById("search_wrapper").textContent = "";
-        if (this.dbIds[index1][index2] != "noIndex") {
-            document.getElementById("from_wrapper").
-                setAttribute("style", "display: block;");
-        }
         draw.wrapper.
             insertAdjacentHTML("beforeend", this.articles[index1][index2]);
         drawCom.draw(this.dbIds[index1][index2]);
@@ -134,7 +132,7 @@ let data = {
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
-                //console.log(responseText);
+                console.log(responseText);
                 console.log("get data");
                 this.blogEntries = JSON.parse(responseText).blogEntries; 
                 this.headers = JSON.parse(responseText).headers; 
@@ -151,6 +149,8 @@ let data = {
 }
 
 function init(e) {
+    data.getData();
+    /*
     if (my_localStorage.timeOver()) {
         data.getData();
     } else {
@@ -161,6 +161,7 @@ function init(e) {
         data.dbIds = obj.dbIds; 
         urlPar.checkPar();
     }
+    */
 }
 
 function getTextEvent(e) {

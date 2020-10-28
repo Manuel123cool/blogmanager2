@@ -32,7 +32,7 @@ if ($conn->query($sql) === TRUE) {
 
 function createTableBlogEntries() {
     $sql = "CREATE TABLE IF NOT EXISTS blog_entries (
-        text VARCHAR(30)
+        text VARCHAR(1000)
     )";
 
     if (conn()->query($sql) === TRUE) {
@@ -45,7 +45,7 @@ function createTableBlogEntries() {
 
 function createTableHeader($index) {
     $sql = "CREATE TABLE IF NOT EXISTS header$index (
-        text VARCHAR(30)
+        text VARCHAR(1000)
     )";
 
     if (conn()->query($sql) === TRUE) {
@@ -103,7 +103,7 @@ function resetDB() {
 
     $sql = "CREATE DATABASE IF NOT EXISTS $dbname";
     if ($conn->query($sql) === TRUE) {
-        //echo "Reset successfull";
+        echo "Reset successfull";
     } else {
         echo "Error creating database: " . $conn->error;
     }

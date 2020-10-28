@@ -59,5 +59,28 @@ let my_localStorage = {
         });
  
         return reObj;
+    },
+    setSearchData(searches) {
+        localStorage.setItem("searches", JSON.stringify(searches));   
+        let startTime = new Date();
+        localStorage.setItem("search_timestamp", startTime.toJSON());   
+    },
+    timeForSearchOver() {
+        if (!localStorage.search_timestamp) {
+            return true;
+        }
+        let startTime = new Date(localStorage.search_timestamp);
+        let nowTime = new Date();
+        let timeDiff = nowTime - startTime;
+        var minutes = Math.round(timeDiff / 60000);
+        if (minutes > 1) {
+            return true;
+        }
+        return false;
+    },
+    reSearchData() {
+        let reObj = new Object();
+        reObj = JSON.parse(localStorage.searches);
+        return reObj;
     }
 }

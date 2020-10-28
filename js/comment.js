@@ -25,7 +25,7 @@ let drawCom = {
         let date = document.createElement("span");
         let dateObj = new Date();
         let dateString = dateObj.toDateString() + " at " +
-               dateObj.toTimeString(); 
+            dateObj.getHours() + ":" + dateObj.getMinutes();
         if (dateTxt != "default") {
             dateString = dateTxt;
         }
@@ -233,27 +233,39 @@ let drawCom = {
     },
     draw: function(index) {
         dataCom.dbIndex = index;
-        
         if (index != "noIndex") {
-            dataCom.getData();
-            dataCom.getTmpData();
-            let submit = document.getElementById("submit");
-            submit.addEventListener("click", drawCommentEvent);
+            let seeAllComments = document.createElement("button");      
+            seeAllComments.innerHTML = "show comments";
+            this.wrapper.appendChild(seeAllComments);
+
+            seeAllComments.addEventListener("click", seeComments);
         }
     }
 }
 
+function seeComments(e) {
+    drawCom.wrapper.textContent = "";
+    document.getElementById("from_wrapper").
+        setAttribute("style", "display: block;");
+    dataCom.getData();
+    dataCom.getTmpData();
+    let submit = document.getElementById("submit");
+    submit.addEventListener("click", drawCommentEvent);
+}
+
 function countEvent(timestamp) {
     let counterElements = document.querySelectorAll(".counter_span");
-    let date = new Date();
+    let startTime = drawCom.counterStartTime;
+    let nowTime = new Date();
+    let timeDiff = nowTime - startTime;
+    var minutes = Math.round(timeDiff / 60000);
+ 
     counterElements.forEach( elem => {
-        elem.innerHTML =  (date.getMinutes() - drawCom.counterStartTime.
-                getMinutes()) + " minutes, when 2 minutes then the comment"
+        elem.innerHTML = minutes + " minutes, when 2 minutes then the comment"
                     + " will be posted"; 
     });
 
-    if (date.getMinutes() - drawCom.counterStartTime.getMinutes() >= 2 &&
-            !drawCom.counterOnce) {
+    if (minutes >= 2 && !drawCom.counterOnce) {
         drawCom.counterOnce = true;
         let xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
@@ -350,7 +362,8 @@ let dataCom = {
                 this.checkAdmin(result);
             }
         });
-        xmlhttp0.open('GET', "php/comment.php?getData=true&dbIndex=" + this.dbIndex, true);
+        xmlhttp0.open('GET', "php/comment.php?getData=true&dbIndex=" + 
+            this.dbIndex, true);
         xmlhttp0.send();  
     },
     getTmpData() {
@@ -540,8 +553,7 @@ function drawCommentEvent(e) {
 
     let dateObj = new Date();
     let dateString = dateObj.toDateString() + " at " +
-               dateObj.toTimeString(); 
-
+        dateObj.getHours() + ":" + dateObj.getMinutes(); 
     if (dataCom.admin) {
         let array = Array(); 
         array[0] = comment;

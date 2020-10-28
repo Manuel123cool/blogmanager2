@@ -177,7 +177,7 @@ let data = {
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 let responseText = xmlhttp0.responseText;
-                //console.log(responseText);
+                console.log(responseText);
                 this.sendData();
             }
         });

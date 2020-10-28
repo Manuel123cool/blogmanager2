@@ -51,6 +51,8 @@ let dataSearch = {
                 let responseText = xmlhttp0.responseText;
                 console.log(responseText);
                 this.searches = JSON.parse(responseText);
+                my_localStorage.setSearchData(this.searches);
+                console.log("Search data arrived");
             }
         });
         xmlhttp0.open('GET', "php/search.php?getData=true", true);
@@ -233,7 +235,11 @@ function preventDefaultFromSearch(e) {
 }
 
 function init(e) {
-    dataSearch.getData();
+    if (my_localStorage.timeForSearchOver()) {
+        dataSearch.getData();
+    } else {
+        dataSearch.searches = my_localStorage.reSearchData();
+    }
 }
 
 document.addEventListener("DOMContentLoaded", init);
