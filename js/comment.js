@@ -384,7 +384,7 @@ let dataCom = {
                 let responseText = xmlhttp0.responseText;
                 console.log(responseText);
                 this.tmp_array = JSON.parse(responseText);
-                if (this.tmp_array.length > 0) {
+                if (this.tmp_array[0]) {
                     drawCom.drawTmpCom(this.tmp_array[1], this.tmp_array[2],
                         this.tmp_array[0], this.tmp_array[3]);
                 }
