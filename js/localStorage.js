@@ -82,5 +82,28 @@ let my_localStorage = {
         let reObj = new Object();
         reObj = JSON.parse(localStorage.searches);
         return reObj;
+    },
+    setFormData() {
+        let name = document.getElementById("name").value;
+        let email = document.getElementById("E-Mail").value;
+        let website = document.getElementById("website").value;
+
+        localStorage.setItem("name_form", name);   
+        localStorage.setItem("email_form", email);   
+        localStorage.setItem("website_form", website);   
+    },
+    getFormData() {
+        if (localStorage.name_form) {
+            document.getElementById("save_input").checked = true;
+            document.getElementById("name").value = localStorage.name_form;
+            document.getElementById("E-Mail").value = localStorage.email_form;
+            document.getElementById("website").value = localStorage.
+                    website_form;
+        }
+    },
+    deleteFormData() {
+        localStorage.removeItem("name_form");   
+        localStorage.removeItem("email_form");   
+        localStorage.removeItem("wbsite_form");   
     }
 }

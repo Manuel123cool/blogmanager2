@@ -536,12 +536,16 @@ function getAllComments(allData) {
             xmlhttp0.addEventListener('readystatechange', (e) => {
                 if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                     let responseText = xmlhttp0.responseText;
-                    console.log(responseText);
                     let result = JSON.parse(responseText);
-                    allData.comment[result.count] = result.com;
-                    let textArea = document.
-                        getElementById("backup_textarea");
-                    textArea.value = JSON.stringify(allData);
+                    if (result.id != "noIndex") {
+                        console.log(responseText);
+                        allData.comment[result.count] = result.com;
+                        let textArea = document.
+                            getElementById("backup_textarea");
+                        textArea.value = JSON.stringify(allData);
+                    } else {
+                        allData.comment[result.count] = "noIndex";
+                    }
                 }
             });
             xmlhttp0.open('GET', "php/comment.php?getData_index=true" +
@@ -580,12 +584,17 @@ function insertBackupCom(allData) {
     let count1 = 0;
     console.log(allData.comment);
     allData.comment.forEach( elem => {
+        if (elem == "noIndex") {
+            return;
+        }
         elem.forEach( elem1 => {
             let replyIndex = elem1[3];
             let name = elem1[1];
             let date = elem1[2];
             let text = elem1[0];
-            let dbIndex = elem1[4];
+            let email = elem1[4]
+            let website = elem1[5]
+            let dbIndex = elem1[6];
             var xmlhttp0 = new XMLHttpRequest();
             xmlhttp0.addEventListener('readystatechange', (e) => {
                 if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
@@ -598,7 +607,8 @@ function insertBackupCom(allData) {
                 "application/x-www-form-urlencoded");
             xmlhttp0.send("name=" + name + "&date=" + date + "&comment=" + text + 
                 "&replyIndex=" + JSON.stringify(replyIndex) +
-                    "&dbIndex=" + dbIndex);
+                    "&dbIndex=" + dbIndex + "&email=" + email + "&website=" +
+                        website);
         });
     }); 
 }

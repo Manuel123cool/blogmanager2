@@ -3,6 +3,7 @@
 let drawCom = {
     marginFactor: 20,
     siteLength: 3,
+    durationOfComments: 2,
     currentSite: null,
     wrapper: document.getElementById("comment_wrapper"),
     indexWrapper: document.getElementById("index_wrapper"),
@@ -15,8 +16,14 @@ let drawCom = {
         article.appendChild(comment_data);
         return comment_data;
     },
-    createName(commentData, nameTxt) {
-        let name = document.createElement("span");
+    createName(commentData, nameTxt, website = false) {
+        let name = null;
+        if (website) {
+            name = document.createElement("a");
+            name.setAttribute("href", website);
+        } else {
+            name = document.createElement("span");
+        } 
         name.innerHTML = nameTxt; 
         name.setAttribute("class", "name_span");
         commentData.appendChild(name);
@@ -94,15 +101,15 @@ let drawCom = {
         }
         window.requestAnimationFrame(countEvent); 
     },
-    drawReply: function(referenceNode, name, comment, date, margin, array, 
-            whichOne) {
+    drawReply: function(referenceNode, name, comment, date, website = false, 
+                margin, array, whichOne) {
         let article = document.createElement('article');        
         
         article.setAttribute("style", "margin-left: " + 
             (this.marginFactor * margin) + "px;");
 
         let commentData = this.createCommentData(article);
-        this.createName(commentData, name);
+        this.createName(commentData, name, website);
         this.createDate(commentData, date);
         this.createReply(commentData);
         this.createDelete(commentData);
@@ -155,7 +162,7 @@ let drawCom = {
             let article = document.createElement('article');        
 
             let commentData = this.createCommentData(article);
-            this.createName(commentData, elem[1]);
+            this.createName(commentData, elem[1], elem[5]);
             this.createDate(commentData, elem[2]);
             this.createReply(commentData);
             this.createDelete(commentData);
@@ -247,6 +254,7 @@ function seeComments(e) {
     drawCom.wrapper.textContent = "";
     document.getElementById("from_wrapper").
         setAttribute("style", "display: block;");
+    my_localStorage.getFormData();
     dataCom.getData();
     dataCom.getTmpData();
     let submit = document.getElementById("submit");
@@ -261,11 +269,12 @@ function countEvent(timestamp) {
     var minutes = Math.round(timeDiff / 60000);
  
     counterElements.forEach( elem => {
-        elem.innerHTML = minutes + " minutes, when 2 minutes then the comment"
+        elem.innerHTML = minutes + " minutes, when " + 
+                drawCom.durationOfComments + " minutes then the comment"
                     + " will be posted"; 
     });
 
-    if (minutes >= 2 && !drawCom.counterOnce) {
+    if (minutes >= drawCom.durationOfComments && !drawCom.counterOnce) {
         drawCom.counterOnce = true;
         let xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
@@ -326,14 +335,15 @@ let dataCom = {
     dbIndex: -1,
     admin: false,
     tmp_array: Array(),
-    sendData(name, date, text) {
+    sendData(name, date, text, email, website) {
         var xmlhttp0 = new XMLHttpRequest();
         xmlhttp0.addEventListener('readystatechange', (e) => {
             if (xmlhttp0.readyState==4 && xmlhttp0.status==200) {
                 var responseText = xmlhttp0.responseText;
                 if (!this.admin) {
                     if (responseText == "isSpamming") { 
-                        window.alert("You only can comment every 2 minutes");
+                        window.alert("You only can comment every " +
+                            + drawCom.durationOfComments + " minutes");
                     } else {
                         drawCom.drawTmpCom(name, date, text, false);
                     }
@@ -347,7 +357,8 @@ let dataCom = {
         let replyIndex = this.replyIndex;
         xmlhttp0.send("name=" + name + "&date=" + date + "&comment=" + text + 
             "&replyIndex=" + JSON.stringify(replyIndex) +
-                "&dbIndex=" + this.dbIndex);
+                "&dbIndex=" + this.dbIndex + "&email=" + email + "&website=" +
+                    website);
     },
     getData() {
         let xmlhttp0 = new XMLHttpRequest();
@@ -550,6 +561,19 @@ function drawCommentEvent(e) {
     e.preventDefault();
     let comment = document.getElementById("comment").value;
     let name = document.getElementById("name").value;
+    let email = document.getElementById("E-Mail").value;
+    let website = document.getElementById("website").value;
+
+    if (document.getElementById("save_input").checked) {
+        my_localStorage.setFormData();
+    } else {
+        my_localStorage.deleteFormData();
+    }
+
+    if (!comment || !name || !email) {
+        window.alert("You must fill comment, name and email");
+        return;
+    }
 
     let dateObj = new Date();
     let dateString = dateObj.toDateString() + " at " +
@@ -560,6 +584,8 @@ function drawCommentEvent(e) {
         array[1] = name;
         array[2] = dateString;
         array[3] = Array();
+        array[4] = email;
+        array[5] = website;
 
         let count6 = 0;
         dataCom.replyIndex.forEach( elem => {
@@ -572,12 +598,12 @@ function drawCommentEvent(e) {
         
         if (!dataCom.replyOn) {
             drawCom.splitComments(dataCom.array);
-            dataCom.sendData(name, dateString, comment);
+            dataCom.sendData(name, dateString, comment, email, website);
         } else {
             let currentNode = dataCom.reReferenceNode();
             if (currentNode != dataCom.replyElem) {
                 drawCom.drawReply(currentNode, name, 
-                        comment, dateString, dataCom.replyIndex.length, 
+                        comment, dateString, website, dataCom.replyIndex.length, 
                         dataCom.replyIndex, 10000);
             }
 
@@ -602,13 +628,14 @@ function drawCommentEvent(e) {
                 showReply.addEventListener("click", showReplyEvent)
             }
 
-            dataCom.sendData(name, dateString, comment);
+            dataCom.sendData(name, dateString, comment, email, website);
         }
     } else {
         if (!drawCom.tmp_wrapper.childNodes[0]) {
-            dataCom.sendData(name, dateString, comment);
+            dataCom.sendData(name, dateString, comment, email, website);
         } else {
-            window.alert("You only can comment every 2 minutes");
+            window.alert("You only can comment every " + 
+                drawCom.durationOfComments + " minutes");
         }
     }
 } 
@@ -658,7 +685,7 @@ function showReplyEvent(e) {
     dataCom.array.forEach( (elem) => {
         if (dataCom.compareArray(elem[3], array)) {
             drawCom.drawReply(drawCom.wrapper.childNodes[indexReference], elem[1], 
-                    elem[0], elem[2], length, array, count2);
+                    elem[0], elem[2], elem[4], length, array, count2);
             count2++;
             indexReference++;
         } 

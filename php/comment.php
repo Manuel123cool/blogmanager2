@@ -35,7 +35,9 @@ function createTable($index) {
         name VARCHAR(30),
         comment VARCHAR(1000),
         date VARCHAR(30),
-        replyIndex VARCHAR(1000)
+        replyIndex VARCHAR(1000),
+        website VARCHAR(300),
+        email VARCHAR(300)
     )";
 
     if (conn()->query($sql) === TRUE) {
@@ -47,13 +49,15 @@ function createTable($index) {
     conn()->close();
 }
 
-function insertData($name, $comment, $date, $replyIndex, $dbIndex) {
+function insertData($name, $comment, $date, $replyIndex, $dbIndex, $email,
+        $website) {
     $sql = "INSERT INTO comment$dbIndex
-         (comment, name, date, replyIndex)
-                 VALUES (?, ?, ?, ?)";
+         (comment, name, date, replyIndex, website, email)
+                 VALUES (?, ?, ?, ?, ?, ?)";
     $conn = conn();
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssss", $comment, $name, $date, $serializedData);
+    $stmt->bind_param("ssssss", $comment, $name, $date, $serializedData,
+        $website, $email);
     $serializedData = serialize($replyIndex);
     $stmt->execute();
 }
@@ -94,18 +98,20 @@ function checkIfIpIsSpaming($ipAddress, $dbIndex) {
     return false;
 }
 
-function insertTmpData($name, $comment, $date, $replyIndex, $dbIndex) {
+function insertTmpData($name, $comment, $date, $replyIndex, $dbIndex, $website,
+        $email) {
     if (checkIfIpIsSpaming(getIpAddress(), $dbIndex)) {
         echo "isSpamming";
         exit();
     }
     $sql = "INSERT INTO tmp_comment$dbIndex
-         (comment, name, date, replyIndex, ipAddress, time, randomKey)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)";
+         (comment, name, date, replyIndex, ipAddress, time, randomKey,
+              website, email)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $conn = conn();
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssss", $comment, $name, $date, $serializedData,
-        $ipAddress, $time, $randomKey);
+    $stmt->bind_param("sssssssss", $comment, $name, $date, $serializedData,
+        $ipAddress, $time, $randomKey, $website, $email);
     $serializedData = serialize($replyIndex);
     $ipAddress = getIpAddress();
     $time = time();
@@ -136,7 +142,7 @@ function delTmpCom($dbIndex) {
 
 function getData($dbIndex) {
     $array = Array();
-    $sql = "SELECT comment, name, date, replyIndex 
+    $sql = "SELECT comment, name, date, replyIndex, website, email 
                 FROM comment$dbIndex";
     $result = conn()->query($sql);
 
@@ -149,6 +155,8 @@ function getData($dbIndex) {
             $array[$count][1] = $row["name"]; 
             $array[$count][2] = $row["date"]; 
             $array[$count][3] = unserialize($row["replyIndex"]); 
+            $array[$count][4] = $row["website"]; 
+            $array[$count][5] = $row["email"]; 
             $count++;
         }
     } else {
@@ -164,7 +172,7 @@ function getData($dbIndex) {
 function getTmpDataForClient($dbIndex) {
     $array = Array();
     $sql = "SELECT comment, name, date, replyIndex, ipAddress, time, randomKey,
-            id FROM tmp_comment$dbIndex";
+            id, website FROM tmp_comment$dbIndex";
     $result = conn()->query($sql);
 
     if ($result->num_rows > 0) {
@@ -175,6 +183,7 @@ function getTmpDataForClient($dbIndex) {
                 $array[0] = $row["comment"]; 
                 $array[1] = $row["name"]; 
                 $array[2] = $row["date"]; 
+                $array[4] = $row["website"]; 
 
                 $startTime = $row["time"]; 
                 $nowTime = time();
@@ -193,7 +202,7 @@ function getTmpDataForClient($dbIndex) {
 function getTmpData($dbIndex) {
     $array = Array();
     $sql = "SELECT comment, name, date, replyIndex, ipAddress, time, randomKey,
-            id FROM tmp_comment$dbIndex";
+            id, email, website FROM tmp_comment$dbIndex";
     $result = conn()->query($sql);
 
     $returnEmpty = false;
@@ -209,6 +218,8 @@ function getTmpData($dbIndex) {
             $array[$count][5] = $row["time"]; 
             $array[$count][6] = $row["randomKey"];
             $array[$count][7] = $row["id"];
+            $array[$count][8] = $row["email"];
+            $array[$count][9] = $row["website"];
             $count++;
         }
     } else {
@@ -287,8 +298,16 @@ if (isset($_GET["getData"], $_GET["dbIndex"])) {
 }
 
 if (isset($_GET["getData_index"], $_GET["dbIndex"], $_GET["index"])) {
-    if (!is_numeric($_GET["dbIndex"])) {
-        echo "Error: not numeric number";
+    if (!is_numeric($_GET["dbIndex"]) && $_GET["dbIndex"] !== "noIndex") {
+        echo "Error: not numeric number: " . $_GET["dbIndex"];
+        exit();
+    }
+    if ($_GET["dbIndex"] === "noIndex") {
+        $array = [
+            "count" => $_GET["index"],
+            "id" => "noIndex"
+        ];
+        echo json_encode($array);
         exit();
     }
     $comment = getData($_GET["dbIndex"]);
@@ -349,10 +368,12 @@ if (isset($_COOKIE["myname"], $_COOKIE["mypassword"])) {
         deleteCom($_GET["DB_id"], json_decode($_GET["pos"])); 
     }
     if (isset($_POST['name'], $_POST['comment'], $_POST['date'], 
-                    $_POST['dbIndex'], $_POST["replyIndex"])) {
+        $_POST['dbIndex'], $_POST["replyIndex"], 
+            $_POST["email"], $_POST["website"])) {
 
         insertData($_POST['name'], $_POST['comment'], $_POST['date'], 
-                json_decode($_POST['replyIndex']), $_POST["dbIndex"]);
+            json_decode($_POST['replyIndex']), $_POST["dbIndex"],
+                $_POST["email"], $_POST["website"]);
         echo "data arrived";
         exit();
     }
@@ -373,7 +394,9 @@ function createTmpTable($index) {
         replyIndex VARCHAR(1000),
         ipAddress VARCHAR(50),
         time VARCHAR(1000),
-        randomKey VARCHAR(50)
+        randomKey VARCHAR(50),
+        website VARCHAR(300),
+        email VARCHAR(300)
     )";
 
     if (conn()->query($sql) === TRUE) {
@@ -386,15 +409,16 @@ function createTmpTable($index) {
 }   
 
 if (isset($_POST['name'], $_POST['comment'], $_POST['date'], 
-            $_POST['dbIndex'],
-                $_POST["replyIndex"])) {
+        $_POST['dbIndex'], $_POST["replyIndex"], $_POST["website"],
+            $_POST["email"])) {
 
     if (!is_numeric($_POST["dbIndex"])) {
         echo "Error: not numeric number";
         exit();
     }
     insertTmpData($_POST['name'], $_POST['comment'], $_POST['date'], 
-            json_decode($_POST['replyIndex']), $_POST["dbIndex"]);
+        json_decode($_POST['replyIndex']), $_POST["dbIndex"],
+            $_POST["website"], $_POST["email"]);
     echo "data arrived";
 }
 
@@ -430,7 +454,7 @@ if (isset($_GET["checkPosting"], $_GET["dbIndex"])) {
         $timeElapsed /= 60; 
         if (round($timeElapsed) >= 1) {
             insertData($value[1], $value[0], $value[2], 
-                $value[3], $_GET["dbIndex"]);
+                $value[3], $_GET["dbIndex"], $value[8], $value[9]);
 
             $sql = "DELETE FROM tmp_comment$dbIndex WHERE id=$value[7]";
 
