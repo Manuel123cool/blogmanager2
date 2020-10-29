@@ -1,0 +1,75 @@
+body {
+    width: 100%;
+    max-width: 800px;
+    margin: auto;
+    background-color: rgb(198, 195, 195);
+}
+
+#site_wrapper {
+    background-color: white;
+    padding: 10px;
+    border-color: rgb(224, 224, 224);
+    border-width: 5px;
+    border-style: solid;
+}
+
+#site_wrapper .big_header_elem {
+    background-color: grey;
+    color: white;
+    display: block;
+    font-size: 13px;
+    padding: 5px 5px 5px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+#site_wrapper .small_header_elem {
+    display: block;
+    font-size: 14px;
+    background-color: rgb(224, 224, 224);
+    margin-top: 2px;
+    margin-bottom: 2px;
+    padding: 2px 2px 2px;
+}
+
+#site_wrapper .small_header_elem a {
+    text-decoration: none; 
+}
+
+#site_wrapper .small_header_elem span {
+    color: black;
+}
+
+#site_wrapper .small_header_elem a:hover {
+    text-decoration: underline;
+}
+
+#site_wrapper .chapter { 
+    margin-right: 10%;
+}
+
+#site_wrapper .chapter_num { 
+    margin-right: 10%;
+}
+
+#search_result_wrapper h4 {
+    display: block;
+    font-size: 14px;
+    background-color: rgb(224, 224, 224);
+    margin-top: 2px;
+    margin-bottom: 2px;
+    padding: 2px 2px 2px;
+}
+
+#search_result_wrapper .chapter_num { 
+    margin-right: 10%;
+}
+
+#search_result_wrapper a {
+    text-decoration: none; 
+}
+
+#search_result_wrapper a:hover {
+    text-decoration: underline; 
+}
+

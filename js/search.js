@@ -19,9 +19,7 @@ let drawSearch = {
     },
     drawUponData() {
         this.result_wrapper.textContent = "";
-        let once = false;
         dataSearch.headerInOrder.forEach( elem => {
-            once = true;
             let headerElem = document.createElement("h4");
             let linkHeader = document.createElement("a");
             linkHeader.innerHTML = data.headers[elem[0]][elem[1]];
@@ -33,10 +31,6 @@ let drawSearch = {
             linkHeader.addEventListener("click", preventDefaultFromSearch);
             headerElem.addEventListener("click", getTextFromSearchEvent);
         });
-        if (once) {
-            let hr = document.createElement("hr");
-            this.result_wrapper.appendChild(hr);
-         }
     }
 }
 

@@ -86,7 +86,7 @@ function createTableArticle($index) {
 function resetDB() {
     $sql = 'DROP DATABASE blog_data';
     if (conn()->query($sql) === TRUE) {
-        // 
+        echo "Successfully deleted Database"; 
     } else {
         echo "Error deleting DB: " . conn()->error;
     } 

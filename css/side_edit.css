@@ -17,7 +17,8 @@ body {
 }
 
 
-.addbutton, .editButton, .deleteButton, .saveButton, .backButton {
+.editDBIdsButton, .addbutton, .editButton, 
+    .deleteButton, .saveButton, .backButton, .editCom, .backupButton {
     border: none;
     color: white;
     padding: 15px 32px;
@@ -63,4 +64,16 @@ body {
     margin-top: 0;
     resize: none;
     display: inline; 
+}
+
+.editDBIdsButton {
+    background-color: green;
+}
+
+.editCom {
+    background-color: green;
+}
+
+.backupButton {
+    background-color: grey;
 }

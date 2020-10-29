@@ -20,7 +20,7 @@ let drawCom = {
         let name = null;
         if (website) {
             name = document.createElement("a");
-            name.setAttribute("href", website);
+            name.setAttribute("href", "http://" + website);
         } else {
             name = document.createElement("span");
         } 
